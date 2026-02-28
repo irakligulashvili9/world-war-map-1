@@ -10,13 +10,13 @@
         #info-panel { flex: 1.5; padding: 15px; background: #050505; overflow-y: auto; display: flex; flex-direction: column; border-left: 2px solid #ffaa00; }
         h2 { color: #ffaa00; border-bottom: 2px solid #ffaa00; padding-bottom: 8px; font-size: 1.1em; text-transform: uppercase; margin-top: 0; }
         .strike-card { background: #0d0d0d; padding: 12px; border: 1px solid #ff4444; border-radius: 4px; margin-bottom: 12px; border-left: 5px solid #ff4444; }
-        .usa-aid { border-left-color: #ffaa00 !important; border-color: #ffaa00 !important; }
+        .aid-card { border-left-color: #ffaa00 !important; border-color: #ffaa00 !important; }
         .status-tag { display: inline-block; padding: 2px 6px; background: #ff4444; color: #000; font-weight: bold; font-size: 0.65em; border-radius: 2px; margin-bottom: 8px; }
         .aid-tag { background: #ffaa00 !important; }
         .news-container { flex-grow: 1; border: 1px solid #222; background: #000; min-height: 380px; overflow: hidden; }
-        iframe { width: 100%; height: 100%; border: none; filter: brightness(0.8) contrast(1.2); }
+        iframe { width: 100%; height: 100%; border: none; }
         .label-style { background: rgba(0,0,0,0.9); border: 1px solid #ff4444; color: #fff; padding: 1px 3px; font-size: 7px; border-radius: 2px; white-space: nowrap; }
-        .usa-label { border-color: #ffaa00; color: #ffaa00; }
+        .support-label { border-color: #ffaa00; color: #ffaa00; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -24,7 +24,7 @@
     <div id="map"></div>
     <div id="info-panel">
         <h2>🛰️ Global Strategic Monitor</h2>
-        <div id="details"><p style="color: #666; font-size: 0.8em;">აირჩიეთ კონფლიქტის ვექტორი ანალიზისთვის.</p></div>
+        <div id="details"><p style="color: #666; font-size: 0.8em;">დააწკაპუნეთ წითელ ხაზს ომისთვის, ყვითელს – დახმარებისთვის.</p></div>
         <div id="news-section" class="news-container" style="display:none;">
             <div id="news-frame-wrapper" style="height: 100%;"></div>
         </div>
@@ -37,29 +37,41 @@
         var map = L.map('map').setView([20, 0], 2.5);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        const usaPos = [38.9, -77.0]; // Washington D.C.
+        // ძირითადი მხარდამჭერი ცენტრები
+        const hubs = {
+            USA: [38.9, -77.0],
+            EU: [50.8, 4.3], // ბრიუსელი
+            CHINA: [39.9, 116.4],
+            IRAN: [35.7, 51.3]
+        };
 
         const data = [
             // ევროპა & კავკასია
-            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], q: "Ukraine war US military aid", status: "ომი", aid: true, analysis: "აშშ ეხმარება უკრაინას HIMARS, ATACMS და ფინანსური პაკეტებით." },
-            { from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], q: "US support Georgia occupation", status: "ოკუპაცია", aid: true, analysis: "აშშ მხარს უჭერს ტერიტორიულ მთლიანობას და თავდაცვისუნარიანობას." },
-            { from: "სერბეთი", to: "ბოსნია", path: [[44.8, 20.4], [43.8, 18.4]], q: "US Bosnia policy", status: "დაძაბულობა", aid: true, analysis: "სანქციები სეპარატისტებზე." },
+            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], q: "Ukraine war latest", status: "ომი", 
+              support: [
+                  { hub: "USA", q: "US military aid to Ukraine news", desc: "აშშ: HIMARS, ATACMS და ფინანსები." },
+                  { hub: "EU", q: "EU military support to Ukraine updates", desc: "ევროკავშირი: ტანკები და ეკონომიკური დახმარება." }
+              ] 
+            },
+            { from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], q: "Russia occupation Georgia", status: "ოკუპაცია",
+              support: [{ hub: "USA", q: "US strategic support Georgia occupation", desc: "აშშ-ს თავდაცვითი თანამშრომლობა." }]
+            },
             
             // ახლო აღმოსავლეთი
-            { from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [32.0, 34.8]], q: "US military aid Israel news", status: "ესკალაცია", aid: true, analysis: "აშშ-ის პირდაპირი თავდაცვითი დახმარება (Iron Dome, THAAD)." },
-            { from: "იემენი", to: "წითელი ზღვა", path: [[15.3, 44.2], [15.0, 42.0]], q: "US strikes Houthis", status: "ბლოკადა", aid: true, analysis: "აშშ-ის კოალიცია (Operation Prosperity Guardian) იცავს გემებს." },
+            { from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [32.0, 34.8]], q: "Iran Israel conflict", status: "ესკალაცია",
+              support: [{ hub: "USA", q: "US defense aid to Israel Iron Dome", desc: "აშშ-ს ანტისარაკეტო მხარდაჭერა." }]
+            },
+            { from: "იემენი", to: "წითელი ზღვა", path: [[15.3, 44.2], [15.0, 42.0]], q: "Houthi attacks", status: "ბლოკადა",
+              support: [{ hub: "IRAN", q: "Iran support for Houthis weapons", desc: "ირანის ტექნიკური და სამხედრო მხარდაჭერა ჰუსიტებს." }]
+            },
 
             // აზია
-            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], q: "US Taiwan arms sale news", status: "ბლოკადა", aid: true, analysis: "აშშ-ის შეიარაღება და სტრატეგიული თავშეკავება." },
-            { from: "ფილიპინები", to: "ჩინეთი", path: [[14.5, 121.0], [15.5, 118.0]], q: "US Philippines defense treaty", status: "საზღვაო დავა", aid: true, analysis: "აშშ-ფილიპინების თავდაცვის ხელშეკრულება." },
-            { from: "ჩრდ. კორეა", to: "სამხ. კორეა", path: [[39.0, 125.7], [37.5, 127.0]], q: "US South Korea military drill", status: "ბირთვული საფრთხე", aid: true, analysis: "აშშ-ის ბირთვული ქოლგა სამხრეთ კორეისთვის." },
-
-            // სამხრეთ ამერიკა (სრული სია)
-            { from: "ვენესუელა", to: "გაიანა", path: [[7.5, -66.5], [6.8, -59.5]], q: "US military exercise Guyana", status: "დაძაბულობა", aid: true, analysis: "აშშ ეხმარება გაიანას დაზვერვითა და წვრთნებით." },
-            { from: "ეკვადორი", to: "ნარკო-ომი", path: [[-0.2, -78.5], [-2.2, -79.8]], q: "US aid Ecuador cartel war", status: "შიდა ომი", aid: true, analysis: "აშშ-ის უსაფრთხოების დახმარება კარტელების წინააღმდეგ." },
-            { from: "კოლუმბია", to: "კარტელები", path: [[4.7, -74.0], [7.0, -73.0]], q: "US Colombia security aid", status: "პარტიზანული ომი", aid: true, analysis: "Plan Colombia-ს ფარგლებში მიმდინარე მხარდაჭერა." },
-            { from: "პერუ", to: "შიდა დაპირისპირება", path: [[-12.0, -77.0], [-13.5, -72.0]], q: "Peru political crisis news", status: "კრიზისი", aid: false, analysis: "შიდა პოლიტიკური არასტაბილურობა და პროტესტები." },
-            { from: "ბრაზილია", to: "საზღვარი", path: [[-15.8, -47.9], [-20.0, -55.0]], q: "Brazil border security news", status: "კონტროლი", aid: false, analysis: "ბრძოლა ტრანსსასაზღვრო კრიმინალთან." }
+            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], q: "Taiwan strait news", status: "ბლოკადა",
+              support: [{ hub: "USA", q: "US weapons sale Taiwan news", desc: "აშშ-ს შეიარაღების მიწოდება ტაივანისთვის." }]
+            },
+            { from: "ხუნტა", to: "მიანმარი", path: [[19.7, 96.1], [22.0, 95.0]], q: "Myanmar civil war news", status: "სამოქალაქო ომი",
+              support: [{ hub: "CHINA", q: "China support Myanmar junta news", desc: "ჩინეთის ეკონომიკური და პოლიტიკური ზურგი ხუნტას." }]
+            }
         ];
 
         function loadNews(query) {
@@ -69,35 +81,42 @@
         }
 
         data.forEach(s => {
-            const color = '#ff4444';
-            // კონფლიქტის ხაზი
-            var line = L.polyline(s.path, {color: color, weight: 2, opacity: 0.8, dashArray: '5, 5'}).addTo(map);
-            
-            // ამერიკის დახმარების ხაზი (ყვითელი)
-            if (s.aid) {
-                L.polyline([usaPos, s.path[1]], {color: '#ffaa00', weight: 1, opacity: 0.4, dashArray: '10, 10'}).addTo(map);
+            // წითელი ხაზი (კონფლიქტი)
+            const warLine = L.polyline(s.path, {color: '#ff4444', weight: 3, opacity: 0.8, dashArray: '5, 5'}).addTo(map);
+            L.polylineDecorator(warLine, { patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 10, pathOptions: {color: '#ff4444', fillOpacity: 1}})}] }).addTo(map);
+
+            warLine.on('click', () => {
+                document.getElementById('details').innerHTML = `<div class="strike-card"><div class="status-tag">${s.status}</div><h3 style="color:#ff4444;margin:0;">${s.from} ➔ ${s.to}</h3></div>`;
+                loadNews(s.q);
+            });
+
+            // ყვითელი ხაზები (მხარდაჭერა)
+            if (s.support) {
+                s.support.forEach(sup => {
+                    const start = hubs[sup.hub];
+                    const end = s.path[1]; // სამიზნე ქვეყანა
+                    const supportLine = L.polyline([start, end], {color: '#ffaa00', weight: 4, opacity: 0.6}).addTo(map);
+                    
+                    supportLine.on('click', (e) => {
+                        L.DomEvent.stopPropagation(e);
+                        document.getElementById('details').innerHTML = `
+                            <div class="strike-card aid-card">
+                                <div class="status-tag aid-tag">მხარდაჭერის ვექტორი</div>
+                                <h3 style="color:#ffaa00;margin:0;">${sup.hub} ➔ ${s.to}</h3>
+                                <p style="font-size:0.85em; color:#fff; margin-top:8px;">${sup.desc}</p>
+                            </div>`;
+                        loadNews(sup.q);
+                    });
+                });
             }
 
-            var ghost = L.polyline(s.path, {color: 'transparent', weight: 20, cursor: 'pointer'}).addTo(map);
-            L.polylineDecorator(line, { patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 10, pathOptions: {color: color, fillOpacity: 1}})}] }).addTo(map);
-
-            const action = () => {
-                document.getElementById('details').innerHTML = `
-                    <div class="strike-card ${s.aid ? 'usa-aid' : ''}">
-                        <div class="status-tag">${s.status}</div>
-                        ${s.aid ? '<div class="status-tag aid-tag">აშშ-ის მხარდაჭერა</div>' : ''}
-                        <h3 style="color:#ff4444;margin:0;font-size:1em;">${s.from} ➔ ${s.to}</h3>
-                        <p style="font-size:0.85em; margin-top:8px; line-height:1.4;">${s.analysis}</p>
-                    </div>`;
-                loadNews(s.q);
-            };
-
-            line.on('click', action); ghost.on('click', action);
             L.marker(s.path[0], {icon: L.divIcon({className: 'label-style', html: s.from})}).addTo(map);
         });
 
-        // USA Marker
-        L.marker(usaPos, {icon: L.divIcon({className: 'label-style usa-label', html: '🇺🇸 USA'})}).addTo(map);
+        // Hub Markers
+        Object.keys(hubs).forEach(h => {
+            L.marker(hubs[h], {icon: L.divIcon({className: 'label-style support-label', html: '⭐ ' + h})}).addTo(map);
+        });
     </script>
 </body>
 </html>
