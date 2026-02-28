@@ -2,20 +2,20 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>Global Strategic Monitor - Live News Feed</title>
+    <title>Global Strategic Monitor - Ultimate Live</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; height: 100vh; background: #050505; color: #00ff00; overflow: hidden; }
         #map { flex: 3.5; border-right: 1px solid #333; }
         #info-panel { flex: 1.5; padding: 20px; background: #0a0a0a; overflow-y: auto; display: flex; flex-direction: column; }
-        h2 { color: #ff4444; border-bottom: 2px solid #ff4444; padding-bottom: 10px; margin-top: 0; }
-        .strike-card { background: #151515; padding: 15px; border: 1px solid #ff4444; border-radius: 6px; margin-bottom: 20px; }
+        h2 { color: #ff4444; border-bottom: 2px solid #ff4444; padding-bottom: 10px; margin-top: 0; text-transform: uppercase; font-size: 1.1em; }
+        .strike-card { background: #151515; padding: 15px; border: 1px solid #ff4444; border-radius: 6px; margin-bottom: 15px; }
         .status-tag { display: inline-block; padding: 3px 8px; background: #ff4444; color: #000; font-weight: bold; font-size: 0.7em; border-radius: 3px; margin-bottom: 10px; }
-        .news-container { flex-grow: 1; border: 1px solid #333; border-radius: 6px; background: #000; min-height: 400px; position: relative; }
-        .news-header { padding: 10px; background: #111; font-size: 0.8em; color: #ffaa00; border-bottom: 1px solid #333; font-weight: bold; }
-        iframe { width: 100%; height: 100%; border: none; }
+        .news-container { flex-grow: 1; border: 1px solid #333; border-radius: 6px; background: #000; min-height: 450px; overflow: hidden; }
+        .news-header { padding: 10px; background: #1a1a1a; font-size: 0.8em; color: #ffaa00; border-bottom: 1px solid #333; font-weight: bold; text-align: center; }
+        iframe { width: 100%; height: 100%; border: none; background: #000; }
         b { color: #ffaa00; }
-        .label-style { background: rgba(0,0,0,0.8); border: 1px solid #ff4444; color: #fff; padding: 2px 4px; font-size: 9px; border-radius: 3px; pointer-events: none; }
+        .label-style { background: rgba(0,0,0,0.85); border: 1px solid #ff4444; color: #fff; padding: 2px 4px; font-size: 8px; border-radius: 3px; pointer-events: none; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -23,14 +23,13 @@
     <div id="map"></div>
     
     <div id="info-panel">
-        <h2>🛰️ ოპერატიული მონაცემები</h2>
+        <h2>🛰️ გეოპოლიტიკური ცენტრი</h2>
         <div id="details">
-            <p style="color: #888;">დააწკაპუნეთ კონფლიქტის ხაზს ანალიზისა და <b>ბოლო ამბების</b> მისაღებად.</p>
+            <p style="color: #888; font-size: 0.9em;">აირჩიეთ კონფლიქტი რუკაზე სრული ანალიზისა და <b>LIVE სიახლეების</b> მისაღებად.</p>
         </div>
         <div id="news-section" class="news-container" style="display:none;">
-            <div class="news-header">🗞️ LIVE სიახლეების რეჟიმი</div>
-            <div id="news-frame-wrapper" style="height: 100%;">
-                </div>
+            <div class="news-header">📡 პირდაპირი ეთერი: სიახლეების ნაკადი</div>
+            <div id="news-frame-wrapper" style="height: 100%;"></div>
         </div>
     </div>
 
@@ -38,17 +37,28 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.min.js"></script>
 
     <script>
-        var map = L.map('map').setView([20, 10], 2.5);
+        var map = L.map('map').setView([20, 15], 2.5);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
         const data = [
-            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], q: "Ukraine war", status: "აქტიური ომი", analysis: "<b>მიზეზი:</b> იმპერიული ამბიცია. <b>სტატუსი:</b> ფართომასშტაბიანი ფრონტი." },
-            { from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [31.7, 35.2]], q: "Israel Iran conflict", status: "ესკალაცია", analysis: "<b>მიზეზი:</b> რეგიონული ჰეგემონია." },
-            { from: "აზერბაიჯანი", to: "სომხეთი", path: [[40.4, 49.8], [40.1, 44.5]], q: "Armenia Azerbaijan peace", status: "მოლაპარაკება", analysis: "<b>მიზეზი:</b> ყარაბაღის შემდგომი მშვიდობის პროცესი." },
-            { from: "კასპიის 5-ეული", to: "კასპია", path: [[40.0, 51.0], [42.0, 50.0]], q: "Caspian Sea oil gas dispute", status: "რესურსების დავა", analysis: "<b>მიზეზი:</b> გაზსადენები და ენერგო-მონოპოლია." },
-            { from: "ვენესუელა", to: "გაიანა", path: [[7.5, -66.5], [6.8, -59.5]], q: "Venezuela Guyana Essequibo", status: "დაძაბულობა", analysis: "<b>მიზეზი:</b> ნავთობი ესეკიბოში." },
-            { from: "სუდანის SAF", to: "RSF", path: [[15.5, 32.5], [14.0, 25.0]], q: "Sudan civil war", status: "სამოქალაქო ომი", analysis: "<b>მიზეზი:</b> ბრძოლა ოქროზე." },
-            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], q: "Taiwan Strait tension", status: "ბლოკადა", analysis: "<b>მიზეზი:</b> ტერიტორიული პრეტენზია." }
+            // --- ევროპა & კავკასია ---
+            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], q: "Ukraine war news", status: "აქტიური ომი", analysis: "<b>რატომ დაიწყო:</b> რუსეთის იმპერიული ამბიცია. <b>სტატუსი:</b> ფართომასშტაბიანი აგრესია." },
+            { from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], q: "Georgia Russia occupied regions", status: "ოკუპაცია", analysis: "<b>მიზეზი:</b> ნატოში ინტეგრაციის ბლოკირება აფხაზეთისა და ცხინვალის ანექსიით." },
+            { from: "აზერბაიჯანი", to: "სომხეთი", path: [[40.4, 49.8], [40.1, 44.5]], q: "Armenia Azerbaijan peace", status: "მშვიდობის პროცესი", analysis: "<b>მიზეზი:</b> ყარაბაღის დაბრუნება. ახლა მიმდინარეობს დელიმიტაციის პროცესი." },
+            
+            // --- ახლო აღმოსავლეთი & კასპია ---
+            { from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [31.7, 35.2]], q: "Israel Iran conflict live", status: "ესკალაცია", analysis: "<b>მიზეზი:</b> რეგიონული ჰეგემონია და იდეოლოგიური მტრობა." },
+            { from: "კასპიის 5-ეული", to: "კასპია", path: [[40.0, 51.0], [42.0, 50.0]], q: "Caspian Sea resources dispute", status: "რესურსების დავა", analysis: "<b>მიზეზი:</b> ნავთობისა და გაზის სექტორული გადანაწილება და ენერგო-მონოპოლია." },
+            
+            // --- აზია ---
+            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], q: "Taiwan Strait news", status: "ბლოკადა", analysis: "<b>მიზეზი:</b> ჩინეთის პრეტენზია სუვერენიტეტზე. შეკავება ხდება აშშ-ის მიერ." },
+            { from: "პაკისტანი", to: "ინდოეთი", path: [[33.6, 73.0], [34.0, 74.8]], q: "Kashmir conflict news", status: "ბირთვული შეკავება", analysis: "<b>მიზეზი:</b> დავა ქაშმირზე 1947 წლიდან." },
+            { from: "ხუნტა", to: "ამბოხებულები (მიანმარი)", path: [[19.7, 96.1], [22.0, 95.0]], q: "Myanmar civil war news", status: "სამოქალაქო ომი", analysis: "<b>მიზეზი:</b> ბრძოლა დემოკრატიისთვის სამხედრო ხუნტის წინააღმდეგ." },
+
+            // --- აფრიკა & სამხრეთ ამერიკა ---
+            { from: "სუდანის SAF", to: "RSF", path: [[15.5, 32.5], [14.0, 25.0]], q: "Sudan war updates", status: "სამოქალაქო ომი", analysis: "<b>მიზეზი:</b> ბრძოლა ოქროს რესურსებსა და ძალაუფლებაზე." },
+            { from: "ვენესუელა", to: "გაიანა", path: [[7.5, -66.5], [6.8, -59.5]], q: "Guyana Venezuela Essequibo", status: "დაძაბულობა", analysis: "<b>მიზეზი:</b> ნავთობით მდიდარი ესეკიბოს რეგიონის ანექსიის მუქარა." },
+            { from: "ეკვადორი", to: "კარტელები", path: [[-0.1, -78.4], [-2.1, -79.9]], q: "Ecuador cartel violence news", status: "შიდა ომი", analysis: "<b>მიზეზი:</b> ნარკო-კარტელების ომი სახელმწიფოს წინააღმდეგ." }
         ];
 
         function loadNews(query) {
@@ -56,27 +66,27 @@
             const section = document.getElementById('news-section');
             section.style.display = 'block';
             
-            // ვიყენებთ Bing News-ის ან მსგავს საძიებო ფანჯარას, რომელიც საშუალებას იძლევა ჩაეშენოს
-            const searchUrl = `https://www.bing.com/news/search?q=${encodeURIComponent(query)}&format=rss&setmkt=en-us`;
-            // რადგან RSS-ს სჭირდება ვიზუალიზატორი, გამოვიყენებთ Google-ის საძიებო ინტერფეისის მსუბუქ ვერსიას
-            wrapper.innerHTML = `<iframe src="https://www.bing.com/news/search?q=${encodeURIComponent(query)}&qft=sortbydate%3d%221%22&form=NWRFSH" title="News Feed"></iframe>`;
+            // ვიყენებთ Google News-ის სპეციალურ RSS ფორმატს, რომელიც უფრო სუფთად ჩანს
+            const newsUrl = `https://www.bing.com/news/search?q=${encodeURIComponent(query)}&qft=sortbydate%3d%221%22&form=NWRFSH`;
+            wrapper.innerHTML = `<iframe src="${newsUrl}" title="Live News Feed"></iframe>`;
         }
 
         data.forEach(s => {
             const color = '#ff4444';
-            var line = L.polyline(s.path, {color: color, weight: 4, opacity: 0.8, dashArray: '6, 6'}).addTo(map);
-            var ghost = L.polyline(s.path, {color: 'transparent', weight: 20}).addTo(map);
+            var line = L.polyline(s.path, {color: color, weight: 4, opacity: 0.7, dashArray: '5, 5'}).addTo(map);
+            var ghost = L.polyline(s.path, {color: 'transparent', weight: 20, cursor: 'pointer'}).addTo(map);
 
             L.polylineDecorator(line, {
-                patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {color: color, fillOpacity: 1}})}]
+                patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 14, pathOptions: {color: color, fillOpacity: 1}})}]
             }).addTo(map);
 
-            const clickAction = () => {
+            const clickAction = (e) => {
+                L.DomEvent.stopPropagation(e);
                 document.getElementById('details').innerHTML = `
                     <div class="strike-card">
                         <div class="status-tag">${s.status}</div>
-                        <h3 style="color:#ff4444;margin:0;">${s.from} ➔ ${s.to}</h3>
-                        <p style="font-size:0.9em; margin-top:10px;">${s.analysis}</p>
+                        <h3 style="color:#ff4444;margin:0;font-size:1.1em;">${s.from} ➔ ${s.to}</h3>
+                        <p style="font-size:0.85em; margin-top:10px; line-height:1.4;">${s.analysis}</p>
                     </div>`;
                 loadNews(s.q);
             };
