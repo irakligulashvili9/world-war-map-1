@@ -2,20 +2,20 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>Global Strategic Monitor - Fixed Analysis</title>
+    <title>Ultimate Global Strategic Monitor 2026</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; height: 100vh; background: #050505; color: #00ff00; }
         #map { flex: 4; border: 1px solid #333; cursor: crosshair; }
-        #info-panel { flex: 1.5; padding: 20px; background: #0a0a0a; border-left: 2px solid #ff4444; overflow-y: auto; z-index: 1000; }
-        h2 { color: #ff4444; font-size: 1.2em; border-bottom: 2px solid #ff4444; padding-bottom: 10px; }
-        .label-style { background: rgba(0,0,0,0.85); border: 1px solid #ff4444; color: #fff; padding: 2px 4px; font-size: 9px; font-weight: bold; border-radius: 3px; pointer-events: none; }
+        #info-panel { flex: 1.5; padding: 20px; background: #0a0a0a; border-left: 2px solid #ff4444; overflow-y: auto; }
+        h2 { color: #ff4444; font-size: 1.2em; border-bottom: 2px solid #ff4444; padding-bottom: 10px; text-transform: uppercase; }
+        .label-style { background: rgba(0,0,0,0.85); border: 1px solid #ff4444; color: #fff; padding: 2px 4px; font-size: 8px; font-weight: bold; border-radius: 3px; white-space: nowrap; pointer-events: none; }
         .aid-label { border-color: #ffaa00; color: #ffaa00; }
         .strike-card { background: #151515; padding: 15px; border: 1px solid #ff4444; margin-top: 15px; color: #eee; border-radius: 6px; line-height: 1.6; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .status-tag { display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 0.8em; margin-bottom: 10px; font-weight: bold; text-transform: uppercase; }
+        .status-tag { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 0.7em; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; }
         b { color: #ffaa00; }
-        p { margin: 10px 0; }
+        .legend { font-size: 0.75em; color: #888; margin-bottom: 15px; border: 1px solid #333; padding: 10px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -23,9 +23,12 @@
     <div id="map"></div>
     
     <div id="info-panel">
-        <h2>🛰️ ოპერატიული მონაცემები</h2>
+        <h2>🛰️ გლობალური მონიტორინგი</h2>
+        <div class="legend">
+            🔴 ომი / დაძაბულობა | 🟡 დახმარება / ალიანსი
+        </div>
         <div id="details">
-            <p style="color: #888;">ინსტრუქცია: დააწკაპუნეთ უშუალოდ <b>წითელ ან ყვითელ ხაზებს</b> სრული სტრატეგიული ანალიზის მისაღებად.</p>
+            <p style="color: #888;">დააწკაპუნეთ ნებისმიერ ვექტორს სრული ანალიზისთვის. რუკა მოიცავს ყველა აქტიურ კონფლიქტს.</p>
         </div>
     </div>
 
@@ -33,45 +36,44 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.min.js"></script>
 
     <script>
-        var map = L.map('map').setView([25, 15], 3);
+        var map = L.map('map').setView([20, 10], 2.5);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
         const data = [
-            { 
-                type: 'war', from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], 
-                status: "აქტიური ომი", 
-                analysis: "<b>რატომ დაიწყო:</b> რუსეთის სურვილი აღადგინოს გეოპოლიტიკური დომინაცია და შეაჩეროს უკრაინის ევროატლანტიკური ინტეგრაცია. <b>რატომ მიმდინარეობს:</b> უკრაინის მედგარი თავდაცვა და დასავლური ტექნოლოგიური უპირატესობა რუსულ რაოდენობრივ ძალასთან დაპირისპირებაში." 
-            },
-            { 
-                type: 'war', from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], 
-                status: "გაყინული ოკუპაცია", 
-                analysis: "<b>რატომ დაიწყო:</b> 2008 წლის აგრესია მიზნად ისახავდა საქართველოს დასავლური კურსის ძალისმიერ ბლოკირებას. <b>რატომ გაჩერდა:</b> რუსეთმა მიაღწია თავის სტრატეგიულ მიზანს - განათავსა მუდმივი სამხედრო ბაზები ოკუპირებულ ტერიტორიებზე, რითაც შექმნა 'ვეტოს' მექანიზმი საქართველოს ნატოში გაწევრიანებაზე." 
-            },
-            { 
-                type: 'war', from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [31.7, 35.2]], 
-                status: "სარაკეტო ესკალაცია", 
-                analysis: "<b>რატომ დაიწყო:</b> ირანის რეგიონული ჰეგემონიის ამბიცია და ისრაელის სახელმწიფოს ლეგიტიმაციის უარყოფა. <b>რატომ მიმდინარეობს:</b> ორივე მხარე ცდილობს ერთმანეთის შეკავებას პირდაპირი დარტყმებით, თუმცა ერიდებიან სრულმასშტაბიან სახმელეთო ომს დისტანციის გამო." 
-            },
-            { 
-                type: 'war', from: "პაკისტანი", to: "ინდოეთი", path: [[33.6, 73.0], [34.0, 74.8]], 
-                status: "ბირთვული შეკავება", 
-                analysis: "<b>რატომ დაიწყო:</b> ქაშმირის რეგიონის კუთვნილებაზე დავა 1947 წლიდან. <b>რატომ არ გადადის ომში:</b> ორივე ქვეყნის ფლობა ბირთვულ იარაღზე ქმნის 'გარანტირებული განადგურების' შიშს, რაც მხარეებს აიძულებს მხოლოდ მცირე სასაზღვრო შეტაკებებით შემოიფარგლონ." 
-            },
-            { 
-                type: 'war', from: "ავღანეთი", to: "პაკისტანი", path: [[34.5, 69.1], [34.0, 71.5]], 
-                status: "სასაზღვრო დავა", 
-                analysis: "<b>რატომ დაიწყო:</b> თალიბანი არ აღიარებს 'დურანდის ხაზს' როგორც ოფიციალურ საზღვარს. <b>რატომ მიმდინარეობს:</b> პაკისტანი ცდილობს საზღვრის ჩაკეტვას ტერორიზმისგან დასაცავად, რასაც თალიბანი ტერიტორიულ ხელყოფად აღიქვამს." 
-            },
-            { 
-                type: 'war', from: "სუდანის SAF", to: "RSF", path: [[15.5, 32.5], [14.0, 25.0]], 
-                status: "სამოქალაქო ომი", 
-                analysis: "<b>რატომ დაიწყო:</b> ორ სამხედრო დაჯგუფებას შორის ძალაუფლების გაყოფის მცდელობა ჩაიშალა. <b>რატომ მიმდინარეობს:</b> ბრძოლა ქვეყნის ოქროს მარაგებისა და სტრატეგიული რესურსების სრული კონტროლისთვის." 
-            },
-            { 
-                type: 'aid', from: "აშშ/NATO", to: "უკრაინა", path: [[38.9, -77.0], [49.5, 30.5]], 
-                status: "სტრატეგიული მხარდაჭერა", 
-                analysis: "<b>მიზანი:</b> საერთაშორისო სამართლის დაცვა და რუსეთის დასუსტება, რათა თავიდან იქნას აცილებული კონფლიქტის გავრცელება ნატოს წევრ ქვეყნებზე." 
-            }
+            // --- ევროპა & კავკასია ---
+            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], status: "ფართომასშტაბიანი ომი", analysis: "<b>რატომ დაიწყო:</b> იმპერიული ამბიცია. <b>სტატუსი:</b> ყველაზე სისხლისმღვრელი კონფლიქტი 21-ე საუკუნეში." },
+            { from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], status: "ოკუპაცია", analysis: "<b>მიზეზი:</b> ნატოში ინტეგრაციის ბლოკირება აფხაზეთისა და ცხინვალის ოკუპაციით." },
+            { from: "აზერბაიჯანი", to: "სომხეთი", path: [[40.4, 49.8], [40.1, 44.5]], status: "პოსტ-კონფლიქტი", analysis: "<b>მიზეზი:</b> ყარაბაღის დაბრუნება. <b>დაძაბულობა:</b> ანკლავები და ზანგეზურის დერეფანი." },
+            { from: "სერბეთი", to: "კოსოვო", path: [[44.8, 20.4], [42.6, 21.1]], status: "ბალკანეთის კრიზისი", analysis: "<b>მიზეზი:</b> სუვერენიტეტის არაღიარება. ნატო (KFOR) აკავებს ომს." },
+
+            // --- ახლო აღმოსავლეთი ---
+            { from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [31.7, 35.2]], status: "პირდაპირი დაპირისპირება", analysis: "<b>მიზეზი:</b> ბრძოლა რეგიონული ლიდერობისთვის და იდეოლოგიური მტრობა." },
+            { from: "თურქეთი", to: "ქურთები (PKK)", path: [[39.9, 32.8], [37.0, 42.0]], status: "ანტიტერორისტული", analysis: "<b>მიზეზი:</b> ქურთული სეპარატიზმი ერაყსა და სირიაში." },
+            { from: "საუდის არაბეთი", to: "ჰუსიტები", path: [[24.7, 46.6], [15.3, 44.2]], status: "პროქსი ომი", analysis: "<b>მიზეზი:</b> იემენის სამოქალაქო ომი და ირანის გავლენა." },
+
+            // --- აზია ---
+            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], status: "ბლოკადა", analysis: "<b>მიზეზი:</b> ტერიტორიული პრეტენზია. აშშ-ის ფლოტი ქმნის შეკავებას." },
+            { from: "პაკისტანი", to: "ინდოეთი", path: [[33.6, 73.0], [34.0, 74.8]], status: "ბირთვული დავა", analysis: "<b>მიზეზი:</b> ქაშმირი. ბირთვული იარაღი აჩერებს დიდ ომს." },
+            { from: "ხუნტა", to: "ამბოხებულები (მიანმარი)", path: [[19.7, 96.1], [22.0, 95.0]], status: "სამოქალაქო ომი", analysis: "<b>მიზეზი:</b> სამხედრო გადატრიალება და დემოკრატიის მოთხოვნა." },
+            { from: "ყირგიზეთი", to: "ტაჯიკეთი", path: [[42.8, 74.5], [38.5, 68.7]], status: "სასაზღვრო დავა", analysis: "<b>მიზეზი:</b> წყლის რესურსების და საზღვრების დაყოფა ფერღანის ველზე." },
+
+            // --- აფრიკა ---
+            { from: "სუდანის SAF", to: "RSF", path: [[15.5, 32.5], [14.0, 25.0]], status: "სამოქალაქო ომი", analysis: "<b>მიზეზი:</b> ბრძოლა ოქროზე და ძალაუფლებაზე." },
+            { from: "ეთიოპია", to: "ამბოხებულები (ფანო)", path: [[9.0, 38.7], [11.5, 37.5]], status: "შიდა დაპირისპირება", analysis: "<b>მიზეზი:</b> ეთნიკური კონფლიქტები ტიგრაის ომის შემდეგ." },
+            { from: "M23", to: "კონგო (DRC)", path: [[-1.9, 29.6], [-1.5, 29.2]], status: "რესურსების ომი", analysis: "<b>მიზეზი:</b> იშვიათი ლითონების (კოლტანი) კონტროლი." },
+            { from: "ისლამისტები", to: "საჰელი", path: [[14.5, -0.3], [12.0, 15.0]], status: "ტერორიზმი", analysis: "<b>მიზეზი:</b> ISIS-ის და ალ-ქაიდას გავლენა მალისა და ნიგერში." },
+
+            // --- სამხრეთ ამერიკა ---
+            { from: "ვენესუელა", to: "გაიანა", path: [[7.5, -66.5], [6.8, -59.5]], status: "ტერიტორიული დავა", analysis: "<b>მიზეზი:</b> ნავთობით მდიდარი ესეკიბოს რეგიონი." },
+            { from: "კარტელები", to: "მექსიკა/ეკვადორი", path: [[25.0, -107.0], [2.0, -77.0]], status: "ნარკო-ომი", analysis: "<b>მიზეზი:</b> სახელმწიფოს წინააღმდეგ ბრძოლა ტრაფიკის კონტროლისთვის." },
+
+            // --- კასპიის ზღვა ---
+            { from: "კასპიის 5-ეული", to: "კასპია", path: [[40.0, 51.0], [42.0, 50.0]], status: "ენერგეტიკული დავა", analysis: "<b>მიზეზი:</b> გაზსადენების და ნავთობის სექტორული გადანაწილება." },
+
+            // --- დახმარება ---
+            { type: 'aid', from: "აშშ/NATO", to: "უკრაინა", path: [[38.9, -77.0], [49.5, 30.5]], status: "დახმარება", analysis: "სამხედრო-ტექნიკური მხარდაჭერა აგრესიის მოსაგერიებლად." },
+            { type: 'aid', from: "ჩრდ. კორეა", to: "რუსეთი", path: [[39.0, 125.7], [52.0, 45.0]], status: "ლოგისტიკა", analysis: "საარტილერიო ჭურვების მიწოდება." },
+            { type: 'aid', from: "თურქეთი", to: "აზერბაიჯანი", path: [[39.9, 32.8], [40.4, 49.8]], status: "ალიანსი", analysis: "სტრატეგიული და სამხედრო მხარდაჭერა." }
         ];
 
         function showDetails(s, color) {
@@ -79,40 +81,26 @@
                 <div class="strike-card" style="border-color:${color}">
                     <div class="status-tag" style="background:${color}; color:#000;">${s.status}</div>
                     <h3 style="color:${color}; margin:0;">${s.from} ➔ ${s.to}</h3>
-                    <div class="analysis-section">
-                        ${s.analysis}
-                    </div>
+                    <div style="margin-top:10px; font-size:0.85em; border-top: 1px solid #333; padding-top:8px;">${s.analysis}</div>
                 </div>`;
         }
 
         data.forEach(s => {
             const isAid = s.type === 'aid';
             const color = isAid ? '#ffaa00' : '#ff4444';
-            
-            // 1. უხილავი ფართო ხაზი უფრო ადვილი დაწკაპუნებისთვის
-            var ghostLine = L.polyline(s.path, { color: 'transparent', weight: 20, cursor: 'pointer' }).addTo(map);
-            
-            // 2. ვიზუალური ხაზი
-            var line = L.polyline(s.path, { color: color, weight: isAid ? 2 : 4, opacity: 0.8, dashArray: isAid ? '10, 10' : '5, 5' }).addTo(map);
-
-            // 3. ისრის თავი
+            var ghostLine = L.polyline(s.path, { color: 'transparent', weight: 25 }).addTo(map);
+            var line = L.polyline(s.path, { color: color, weight: isAid ? 2 : 4, opacity: 0.8, dashArray: isAid ? '12, 12' : '6, 6' }).addTo(map);
             var decorator = L.polylineDecorator(line, {
-                patterns: [{offset: '100%', repeat: 0, symbol: L.Symbol.arrowHead({pixelSize: 16, pathOptions: {color: color, fillOpacity: 1}})}]
+                patterns: [{offset: '100%', repeat: 0, symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {color: color, fillOpacity: 1}})}]
             }).addTo(map);
 
-            // დაწკაპუნების ფუნქცია მიბმული ყველაფერზე
             [ghostLine, line, decorator].forEach(el => {
-                el.on('click', (e) => {
-                    L.DomEvent.stopPropagation(e);
-                    showDetails(s, color);
-                });
+                el.on('click', (e) => { L.DomEvent.stopPropagation(e); showDetails(s, color); });
             });
 
-            // მარკერები სახელებით
             L.marker(s.path[0], {icon: L.divIcon({className: 'label-style ' + (isAid ? 'aid-label' : ''), html: s.from})}).addTo(map);
             L.marker(s.path[1], {icon: L.divIcon({className: 'label-style', html: s.to})}).addTo(map);
         });
-
     </script>
 </body>
 </html>
