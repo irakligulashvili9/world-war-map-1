@@ -2,7 +2,7 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>Global Strategic Monitor</title>
+    <title>Global Strategic Monitor - Ultimate Edition</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; height: 100vh; background: #010101; color: #00ff00; overflow: hidden; }
@@ -16,15 +16,15 @@
         .news-container { flex-grow: 1; border: 1px solid #222; background: #000; min-height: 380px; overflow: hidden; }
         iframe { width: 100%; height: 100%; border: none; }
         .label-style { background: rgba(0,0,0,0.9); border: 1px solid #ff4444; color: #fff; padding: 1px 3px; font-size: 7px; border-radius: 2px; white-space: nowrap; }
-        .support-label { border-color: #ffaa00; color: #ffaa00; font-weight: bold; }
+        .hub-label { border-color: #ffaa00; color: #ffaa00; font-weight: bold; font-size: 9px; }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
     <div id="info-panel">
-        <h2>🛰️ Global Strategic Monitor</h2>
-        <div id="details"><p style="color: #666; font-size: 0.8em;">დააწკაპუნეთ წითელ ხაზს ომისთვის, ყვითელს – დახმარებისთვის.</p></div>
+        <h2>🛰️ Strategic Monitor</h2>
+        <div id="details"><p style="color: #666; font-size: 0.85em;">წითელი = ომი | ყვითელი = მხარდაჭერა</p></div>
         <div id="news-section" class="news-container" style="display:none;">
             <div id="news-frame-wrapper" style="height: 100%;"></div>
         </div>
@@ -34,44 +34,60 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.min.js"></script>
 
     <script>
-        var map = L.map('map').setView([20, 0], 2.5);
+        var map = L.map('map').setView([20, 10], 2.5);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        // ძირითადი მხარდამჭერი ცენტრები
         const hubs = {
-            USA: [38.9, -77.0],
-            EU: [50.8, 4.3], // ბრიუსელი
-            CHINA: [39.9, 116.4],
-            IRAN: [35.7, 51.3]
+            USA: [38.9, -77.0], EU: [50.8, 4.3], CHINA: [39.9, 116.4], 
+            IRAN: [35.7, 51.3], RUSSIA: [55.7, 37.6], TURKEY: [39.9, 32.8]
         };
 
         const data = [
             // ევროპა & კავკასია
-            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], q: "Ukraine war latest", status: "ომი", 
-              support: [
-                  { hub: "USA", q: "US military aid to Ukraine news", desc: "აშშ: HIMARS, ATACMS და ფინანსები." },
-                  { hub: "EU", q: "EU military support to Ukraine updates", desc: "ევროკავშირი: ტანკები და ეკონომიკური დახმარება." }
-              ] 
-            },
-            { from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], q: "Russia occupation Georgia", status: "ოკუპაცია",
-              support: [{ hub: "USA", q: "US strategic support Georgia occupation", desc: "აშშ-ს თავდაცვითი თანამშრომლობა." }]
-            },
-            
+            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], q: "Ukraine war latest", status: "ომი", support: [
+                { hub: "USA", q: "US military aid Ukraine", desc: "აშშ: HIMARS, საჰაერო თავდაცვა." },
+                { hub: "EU", q: "EU support Ukraine tanks", desc: "ევროკავშირი: ეკონომიკური და სამხედრო მხარდაჭერა." }
+            ]},
+            { from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], q: "Russia occupation Georgia", status: "ოკუპაცია", support: [
+                { hub: "USA", q: "US support Georgia", desc: "აშშ: სტრატეგიული პარტნიორობა." }
+            ]},
+            { from: "აზერბაიჯანი", to: "სომხეთი", path: [[40.4, 49.8], [40.1, 44.5]], q: "Armenia Azerbaijan news", status: "დავა", support: [
+                { hub: "TURKEY", q: "Turkey military aid Azerbaijan", desc: "თურქეთი: დრონები და წვრთნები." }
+            ]},
+            { from: "სერბეთი", to: "ბოსნია", path: [[44.8, 20.4], [43.8, 18.4]], q: "Bosnia tension news", status: "დაძაბულობა", support: [
+                { hub: "RUSSIA", q: "Russia support Republika Srpska", desc: "რუსეთი: პოლიტიკური ზურგი სეპარატისტებს." }
+            ]},
+
             // ახლო აღმოსავლეთი
-            { from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [32.0, 34.8]], q: "Iran Israel conflict", status: "ესკალაცია",
-              support: [{ hub: "USA", q: "US defense aid to Israel Iron Dome", desc: "აშშ-ს ანტისარაკეტო მხარდაჭერა." }]
-            },
-            { from: "იემენი", to: "წითელი ზღვა", path: [[15.3, 44.2], [15.0, 42.0]], q: "Houthi attacks", status: "ბლოკადა",
-              support: [{ hub: "IRAN", q: "Iran support for Houthis weapons", desc: "ირანის ტექნიკური და სამხედრო მხარდაჭერა ჰუსიტებს." }]
-            },
+            { from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [32.0, 34.8]], q: "Israel Iran war", status: "ესკალაცია", support: [
+                { hub: "USA", q: "US military support Israel", desc: "აშშ: Iron Dome და თავდაცვა." }
+            ]},
+            { from: "იემენი", to: "წითელი ზღვა", path: [[15.3, 44.2], [15.0, 42.0]], q: "Houthi attacks", status: "ბლოკადა", support: [
+                { hub: "IRAN", q: "Iran weapons Houthis news", desc: "ირანი: სარაკეტო ტექნოლოგიები." }
+            ]},
 
             // აზია
-            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], q: "Taiwan strait news", status: "ბლოკადა",
-              support: [{ hub: "USA", q: "US weapons sale Taiwan news", desc: "აშშ-ს შეიარაღების მიწოდება ტაივანისთვის." }]
-            },
-            { from: "ხუნტა", to: "მიანმარი", path: [[19.7, 96.1], [22.0, 95.0]], q: "Myanmar civil war news", status: "სამოქალაქო ომი",
-              support: [{ hub: "CHINA", q: "China support Myanmar junta news", desc: "ჩინეთის ეკონომიკური და პოლიტიკური ზურგი ხუნტას." }]
-            }
+            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], q: "Taiwan news live", status: "ბლოკადა", support: [
+                { hub: "USA", q: "US Taiwan arms sale", desc: "აშშ: შეიარაღება და უსაფრთხოება." }
+            ]},
+            { from: "ხუნტა", to: "მიანმარი", path: [[19.7, 96.1], [22.0, 95.0]], q: "Myanmar war news", status: "ომი", support: [
+                { hub: "CHINA", q: "China Myanmar junta support", desc: "ჩინეთი: ინვესტიციები და შეიარაღება." }
+            ]},
+            { from: "ჩრდ. კორეა", to: "სამხ. კორეა", path: [[39.0, 125.7], [37.5, 127.0]], q: "Korea tension news", status: "საფრთხე", support: [
+                { hub: "USA", q: "US South Korea alliance news", desc: "აშშ: ბირთვული ქოლგა." },
+                { hub: "RUSSIA", q: "Russia North Korea military deal", desc: "რუსეთი: სამხედრო ტექნოლოგიების გაცვლა." }
+            ]},
+
+            // აფრიკა & ამერიკა
+            { from: "სუდანი", to: "შიდა ომი", path: [[15.5, 32.5], [14.0, 25.0]], q: "Sudan conflict news", status: "ომი", support: [
+                { hub: "RUSSIA", q: "Wagner group Sudan news", desc: "რუსეთი (ვაგნერი): რესურსების კონტროლი." }
+            ]},
+            { from: "ვენესუელა", to: "გაიანა", path: [[7.5, -66.5], [6.8, -59.5]], q: "Essequibo news", status: "დავა", support: [
+                { hub: "USA", q: "US Guyana defense drills", desc: "აშშ: სამხედრო წვრთნები გაიანაში." }
+            ]},
+            { from: "ეკვადორი", to: "კარტელები", path: [[-0.2, -78.5], [-2.2, -79.8]], q: "Ecuador war", status: "შიდა ომი", support: [
+                { hub: "USA", q: "US aid Ecuador security", desc: "აშშ: უსაფრთხოების აღჭურვილობა." }
+            ]}
         ];
 
         function loadNews(query) {
@@ -81,7 +97,6 @@
         }
 
         data.forEach(s => {
-            // წითელი ხაზი (კონფლიქტი)
             const warLine = L.polyline(s.path, {color: '#ff4444', weight: 3, opacity: 0.8, dashArray: '5, 5'}).addTo(map);
             L.polylineDecorator(warLine, { patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 10, pathOptions: {color: '#ff4444', fillOpacity: 1}})}] }).addTo(map);
 
@@ -90,18 +105,17 @@
                 loadNews(s.q);
             });
 
-            // ყვითელი ხაზები (მხარდაჭერა)
             if (s.support) {
                 s.support.forEach(sup => {
                     const start = hubs[sup.hub];
-                    const end = s.path[1]; // სამიზნე ქვეყანა
+                    const end = s.path[1];
                     const supportLine = L.polyline([start, end], {color: '#ffaa00', weight: 4, opacity: 0.6}).addTo(map);
                     
                     supportLine.on('click', (e) => {
                         L.DomEvent.stopPropagation(e);
                         document.getElementById('details').innerHTML = `
                             <div class="strike-card aid-card">
-                                <div class="status-tag aid-tag">მხარდაჭერის ვექტორი</div>
+                                <div class="status-tag aid-tag">მხარდაჭერა</div>
                                 <h3 style="color:#ffaa00;margin:0;">${sup.hub} ➔ ${s.to}</h3>
                                 <p style="font-size:0.85em; color:#fff; margin-top:8px;">${sup.desc}</p>
                             </div>`;
@@ -109,13 +123,11 @@
                     });
                 });
             }
-
             L.marker(s.path[0], {icon: L.divIcon({className: 'label-style', html: s.from})}).addTo(map);
         });
 
-        // Hub Markers
         Object.keys(hubs).forEach(h => {
-            L.marker(hubs[h], {icon: L.divIcon({className: 'label-style support-label', html: '⭐ ' + h})}).addTo(map);
+            L.marker(hubs[h], {icon: L.divIcon({className: 'label-style hub-label', html: '★ ' + h})}).addTo(map);
         });
     </script>
 </body>
