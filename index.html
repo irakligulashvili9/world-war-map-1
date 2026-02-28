@@ -2,31 +2,29 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>Global Omniscience - Definite Edition</title>
+    <title>Global Strategic Monitor</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; height: 100vh; background: #010101; color: #00ff00; overflow: hidden; }
         #map { flex: 3.5; border-right: 1px solid #333; }
-        #info-panel { flex: 1.5; padding: 15px; background: #050505; overflow-y: auto; display: flex; flex-direction: column; border-left: 2px solid #ff4444; }
-        h2 { color: #ff4444; border-bottom: 2px solid #ff4444; padding-bottom: 8px; font-size: 1em; text-transform: uppercase; letter-spacing: 1px; margin-top: 0; }
-        .strike-card { background: #0d0d0d; padding: 12px; border: 1px solid #ff4444; border-radius: 4px; margin-bottom: 12px; border-left: 5px solid #ff4444; transition: 0.3s; }
-        .strike-card:hover { border-color: #ffaa00; box-shadow: 0 0 10px #ffaa00; }
+        #info-panel { flex: 1.5; padding: 15px; background: #050505; overflow-y: auto; display: flex; flex-direction: column; border-left: 2px solid #ffaa00; }
+        h2 { color: #ffaa00; border-bottom: 2px solid #ffaa00; padding-bottom: 8px; font-size: 1.1em; text-transform: uppercase; margin-top: 0; }
+        .strike-card { background: #0d0d0d; padding: 12px; border: 1px solid #ff4444; border-radius: 4px; margin-bottom: 12px; border-left: 5px solid #ff4444; }
+        .usa-aid { border-left-color: #ffaa00 !important; border-color: #ffaa00 !important; }
         .status-tag { display: inline-block; padding: 2px 6px; background: #ff4444; color: #000; font-weight: bold; font-size: 0.65em; border-radius: 2px; margin-bottom: 8px; }
-        .news-container { flex-grow: 1; border: 1px solid #222; background: #000; min-height: 400px; overflow: hidden; position: relative; }
+        .aid-tag { background: #ffaa00 !important; }
+        .news-container { flex-grow: 1; border: 1px solid #222; background: #000; min-height: 380px; overflow: hidden; }
         iframe { width: 100%; height: 100%; border: none; filter: brightness(0.8) contrast(1.2); }
-        .label-style { background: rgba(0,0,0,0.9); border: 1px solid #ff4444; color: #fff; padding: 1px 3px; font-size: 7px; border-radius: 2px; pointer-events: none; white-space: nowrap; }
-        
-        /* 💡 პულსაციის ეფექტი */
-        .leaflet-pulsing-icon { border-radius: 50%; box-shadow: 0 0 0 rgba(255, 68, 68, 0.4); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); } }
+        .label-style { background: rgba(0,0,0,0.9); border: 1px solid #ff4444; color: #fff; padding: 1px 3px; font-size: 7px; border-radius: 2px; white-space: nowrap; }
+        .usa-label { border-color: #ffaa00; color: #ffaa00; }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
     <div id="info-panel">
-        <h2>🛰️ ომის ოთახი: Omniscience Project</h2>
-        <div id="details"><p style="color: #555; font-size: 0.8em;">სისტემა ონლაინ რეჟიმშია. აირჩიეთ აქტიური ვექტორი.</p></div>
+        <h2>🛰️ Global Strategic Monitor</h2>
+        <div id="details"><p style="color: #666; font-size: 0.8em;">აირჩიეთ კონფლიქტის ვექტორი ანალიზისთვის.</p></div>
         <div id="news-section" class="news-container" style="display:none;">
             <div id="news-frame-wrapper" style="height: 100%;"></div>
         </div>
@@ -39,38 +37,29 @@
         var map = L.map('map').setView([20, 0], 2.5);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
+        const usaPos = [38.9, -77.0]; // Washington D.C.
+
         const data = [
             // ევროპა & კავკასია
-            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], q: "Ukraine war latest", status: "აქტიური ომი", analysis: "ფართომასშტაბიანი იმპერიული აგრესია." },
-            { from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], q: "Russia occupation Georgia news", status: "ოკუპაცია", analysis: "აფხაზეთისა და ცხინვალის რეგიონები." },
-            { from: "სერბეთი", to: "ბოსნია", path: [[44.8, 20.4], [43.8, 18.4]], q: "Milorad Dodik secession news", status: "სეპარატიზმი", analysis: "სერბთა რესპუბლიკის მცდელობა დაარღვიოს დეიტონის შეთანხმება." },
-            { from: "მოლდოვა", to: "დნესტრისპირეთი", path: [[47.0, 28.8], [46.8, 29.6]], q: "Transnistria conflict updates", status: "გაყინული ომი", analysis: "რუსული გარნიზონის არსებობა მოლდოვაში." },
-            { from: "აზერბაიჯანი", to: "სომხეთი", path: [[40.4, 49.8], [40.1, 44.5]], q: "Armenia Azerbaijan border", status: "მშვიდობის პროცესი", analysis: "ზანგეზურის დერეფნის საკითხი." },
-            { from: "ჩრდ. მაკედონია", to: "ეთნიკური დავა", path: [[41.9, 21.4], [42.1, 21.0]], q: "North Macedonia ethnic tension", status: "დაძაბულობა", analysis: "ალბანური უმცირესობის უფლებების საკითხი." },
+            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], q: "Ukraine war US military aid", status: "ომი", aid: true, analysis: "აშშ ეხმარება უკრაინას HIMARS, ATACMS და ფინანსური პაკეტებით." },
+            { from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], q: "US support Georgia occupation", status: "ოკუპაცია", aid: true, analysis: "აშშ მხარს უჭერს ტერიტორიულ მთლიანობას და თავდაცვისუნარიანობას." },
+            { from: "სერბეთი", to: "ბოსნია", path: [[44.8, 20.4], [43.8, 18.4]], q: "US Bosnia policy", status: "დაძაბულობა", aid: true, analysis: "სანქციები სეპარატისტებზე." },
+            
+            // ახლო აღმოსავლეთი
+            { from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [32.0, 34.8]], q: "US military aid Israel news", status: "ესკალაცია", aid: true, analysis: "აშშ-ის პირდაპირი თავდაცვითი დახმარება (Iron Dome, THAAD)." },
+            { from: "იემენი", to: "წითელი ზღვა", path: [[15.3, 44.2], [15.0, 42.0]], q: "US strikes Houthis", status: "ბლოკადა", aid: true, analysis: "აშშ-ის კოალიცია (Operation Prosperity Guardian) იცავს გემებს." },
 
-            // ახლო აღმოსავლეთი & კასპია
-            { from: "ისრაელი", to: "ლიბანი", path: [[31.7, 35.2], [33.8, 35.5]], q: "Hezbollah Israel conflict", status: "აქტიური შეტაკება", analysis: "დაპირისპირება ისრაელსა და ჰეზბოლას შორის." },
-            { from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [32.0, 34.8]], q: "Iran Israel tension live", status: "ესკალაცია", analysis: "პირდაპირი სარაკეტო დარტყმები." },
-            { from: "იემენი", to: "ჰუსიტები", path: [[15.3, 44.2], [15.0, 42.0]], q: "Houthi Red Sea blockade", status: "ბლოკადა", analysis: "თავდასხმები გლობალურ ვაჭრობაზე." },
-            { from: "კასპია", to: "ენერგო-მარშრუტები", path: [[40.0, 51.0], [42.0, 50.0]], q: "Caspian Sea pipeline news", status: "ენერგო დავა", analysis: "ენერგორესურსების სექტორული დაყოფა." },
+            // აზია
+            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], q: "US Taiwan arms sale news", status: "ბლოკადა", aid: true, analysis: "აშშ-ის შეიარაღება და სტრატეგიული თავშეკავება." },
+            { from: "ფილიპინები", to: "ჩინეთი", path: [[14.5, 121.0], [15.5, 118.0]], q: "US Philippines defense treaty", status: "საზღვაო დავა", aid: true, analysis: "აშშ-ფილიპინების თავდაცვის ხელშეკრულება." },
+            { from: "ჩრდ. კორეა", to: "სამხ. კორეა", path: [[39.0, 125.7], [37.5, 127.0]], q: "US South Korea military drill", status: "ბირთვული საფრთხე", aid: true, analysis: "აშშ-ის ბირთვული ქოლგა სამხრეთ კორეისთვის." },
 
-            // აფრიკა
-            { from: "ჩადი", to: "ამბოხებულები", path: [[12.1, 15.0], [18.0, 19.0]], q: "Chad rebel conflict news", status: "შიდა ომი", analysis: "ხელისუფლებისთვის ბრძოლა საჰელში." },
-            { from: "CAR", to: "ამბოხებულები", path: [[4.3, 18.5], [6.0, 20.0]], q: "CAR civil war updates", status: "სამოქალაქო ომი", analysis: "ვაგნერის ჯგუფის აქტივობა ცენტრალურ აფრიკაში." },
-            { from: "სომალი", to: "ეთიოპია", path: [[2.0, 45.3], [9.0, 38.7]], q: "Somalia Ethiopia sea access", status: "დაძაბულობა", analysis: "დავა პორტებზე და სომალილენდზე." },
-            { from: "კამერუნი", to: "ამბაზონია", path: [[3.8, 11.5], [5.9, 10.3]], q: "Cameroon Ambazonia conflict", status: "სეპარატიზმი", analysis: "ბრძოლა ინგლისურენოვანი რეგიონების გამო." },
-
-            // აზია & ოკეანეთი
-            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], q: "Taiwan strait tension", status: "ბლოკადა", analysis: "ჩინეთის საზღვაო და საჰაერო წნეხი." },
-            { from: "ფილიპინები", to: "ჩინეთი", path: [[14.5, 121.0], [15.5, 118.0]], q: "South China Sea clash news", status: "საზღვაო დავა", analysis: "დაპირისპირება რიფებზე." },
-            { from: "ინდოეთი", to: "ჩინეთი", path: [[28.6, 77.2], [34.0, 78.5]], q: "Himalayas border news", status: "სასაზღვრო დავა", analysis: "დაპირისპირება ჰიმალაებში." },
-            { from: "მიანმარი", to: "ამბოხებულები", path: [[19.7, 96.1], [21.0, 96.0]], q: "Myanmar civil war news", status: "სამოქალაქო ომი", analysis: "ბრძოლა სამხედრო ხუნტასა და PDF-ს შორის." },
-            { from: "იაპონია", to: "კურილის კუნძ.", path: [[35.6, 139.6], [44.0, 146.0]], q: "Kuril Islands dispute", status: "ტერიტორიული დავა", analysis: "დავა რუსეთთან კურილის კუნძულებზე." },
-
-            // ამერიკა & არქტიკა
-            { from: "პანამა", to: "Darien Gap", path: [[8.9, -79.5], [8.0, -77.5]], q: "Darien Gap crisis news", status: "ჰუმანიტარული ომი", analysis: "კარტელების კონტროლი მიგრაციულ ნაკადებზე." },
-            { from: "მექსიკა", to: "კარტელები", path: [[19.4, -99.1], [25.0, -107.0]], q: "Sinaloa cartel war news", status: "შიდა ომი", analysis: "ბრძოლა სინალოას კარტელთან." },
-            { from: "არქტიკა", to: "რესურსები", path: [[70.0, 10.0], [80.0, 20.0]], q: "Arctic military buildup news", status: "ცივი ომი", analysis: "ბრძოლა ჩრდილოეთის რესურსებზე." }
+            // სამხრეთ ამერიკა (სრული სია)
+            { from: "ვენესუელა", to: "გაიანა", path: [[7.5, -66.5], [6.8, -59.5]], q: "US military exercise Guyana", status: "დაძაბულობა", aid: true, analysis: "აშშ ეხმარება გაიანას დაზვერვითა და წვრთნებით." },
+            { from: "ეკვადორი", to: "ნარკო-ომი", path: [[-0.2, -78.5], [-2.2, -79.8]], q: "US aid Ecuador cartel war", status: "შიდა ომი", aid: true, analysis: "აშშ-ის უსაფრთხოების დახმარება კარტელების წინააღმდეგ." },
+            { from: "კოლუმბია", to: "კარტელები", path: [[4.7, -74.0], [7.0, -73.0]], q: "US Colombia security aid", status: "პარტიზანული ომი", aid: true, analysis: "Plan Colombia-ს ფარგლებში მიმდინარე მხარდაჭერა." },
+            { from: "პერუ", to: "შიდა დაპირისპირება", path: [[-12.0, -77.0], [-13.5, -72.0]], q: "Peru political crisis news", status: "კრიზისი", aid: false, analysis: "შიდა პოლიტიკური არასტაბილურობა და პროტესტები." },
+            { from: "ბრაზილია", to: "საზღვარი", path: [[-15.8, -47.9], [-20.0, -55.0]], q: "Brazil border security news", status: "კონტროლი", aid: false, analysis: "ბრძოლა ტრანსსასაზღვრო კრიმინალთან." }
         ];
 
         function loadNews(query) {
@@ -81,24 +70,34 @@
 
         data.forEach(s => {
             const color = '#ff4444';
-            var line = L.polyline(s.path, {color: color, weight: 2, opacity: 0.7, dashArray: '4, 4'}).addTo(map);
+            // კონფლიქტის ხაზი
+            var line = L.polyline(s.path, {color: color, weight: 2, opacity: 0.8, dashArray: '5, 5'}).addTo(map);
+            
+            // ამერიკის დახმარების ხაზი (ყვითელი)
+            if (s.aid) {
+                L.polyline([usaPos, s.path[1]], {color: '#ffaa00', weight: 1, opacity: 0.4, dashArray: '10, 10'}).addTo(map);
+            }
+
             var ghost = L.polyline(s.path, {color: 'transparent', weight: 20, cursor: 'pointer'}).addTo(map);
             L.polylineDecorator(line, { patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 10, pathOptions: {color: color, fillOpacity: 1}})}] }).addTo(map);
 
             const action = () => {
-                document.getElementById('details').innerHTML = `<div class="strike-card"><div class="status-tag">${s.status}</div><h3 style="color:#ff4444;margin:0;font-size:0.95em;">${s.from} ➔ ${s.to}</h3><p style="font-size:0.8em; margin-top:5px; line-height:1.4;">${s.analysis}</p></div>`;
+                document.getElementById('details').innerHTML = `
+                    <div class="strike-card ${s.aid ? 'usa-aid' : ''}">
+                        <div class="status-tag">${s.status}</div>
+                        ${s.aid ? '<div class="status-tag aid-tag">აშშ-ის მხარდაჭერა</div>' : ''}
+                        <h3 style="color:#ff4444;margin:0;font-size:1em;">${s.from} ➔ ${s.to}</h3>
+                        <p style="font-size:0.85em; margin-top:8px; line-height:1.4;">${s.analysis}</p>
+                    </div>`;
                 loadNews(s.q);
-                
-                // 💡 დააწკაპუნეთ, რომ დაიწყოს პულსაცია
-                if (s.pulsingIcon) { map.removeLayer(s.pulsingIcon); s.pulsingIcon = null; }
-                else {
-                    s.pulsingIcon = L.marker(s.path[0], {icon: L.divIcon({className: 'leaflet-pulsing-icon', iconSize: [12, 12]})}).addTo(map);
-                }
             };
 
             line.on('click', action); ghost.on('click', action);
             L.marker(s.path[0], {icon: L.divIcon({className: 'label-style', html: s.from})}).addTo(map);
         });
+
+        // USA Marker
+        L.marker(usaPos, {icon: L.divIcon({className: 'label-style usa-label', html: '🇺🇸 USA'})}).addTo(map);
     </script>
 </body>
 </html>
