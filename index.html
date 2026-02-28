@@ -2,7 +2,7 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>Global Strategic Monitor - Ultimate Edition</title>
+    <title>Global Strategic Monitor - Complete Dataset</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; height: 100vh; background: #010101; color: #00ff00; overflow: hidden; }
@@ -13,7 +13,7 @@
         .aid-card { border-left-color: #ffaa00 !important; border-color: #ffaa00 !important; }
         .status-tag { display: inline-block; padding: 2px 6px; background: #ff4444; color: #000; font-weight: bold; font-size: 0.65em; border-radius: 2px; margin-bottom: 8px; }
         .aid-tag { background: #ffaa00 !important; }
-        .news-container { flex-grow: 1; border: 1px solid #222; background: #000; min-height: 380px; overflow: hidden; }
+        .news-container { flex-grow: 1; border: 1px solid #222; background: #000; min-height: 400px; overflow: hidden; }
         iframe { width: 100%; height: 100%; border: none; }
         .label-style { background: rgba(0,0,0,0.9); border: 1px solid #ff4444; color: #fff; padding: 1px 3px; font-size: 7px; border-radius: 2px; white-space: nowrap; }
         .hub-label { border-color: #ffaa00; color: #ffaa00; font-weight: bold; font-size: 9px; }
@@ -24,7 +24,7 @@
     <div id="map"></div>
     <div id="info-panel">
         <h2>🛰️ Strategic Monitor</h2>
-        <div id="details"><p style="color: #666; font-size: 0.85em;">წითელი = ომი | ყვითელი = მხარდაჭერა</p></div>
+        <div id="details"><p style="color: #666; font-size: 0.85em;">წითელი = კონფლიქტი | ყვითელი = მხარდაჭერა</p></div>
         <div id="news-section" class="news-container" style="display:none;">
             <div id="news-frame-wrapper" style="height: 100%;"></div>
         </div>
@@ -44,50 +44,34 @@
 
         const data = [
             // ევროპა & კავკასია
-            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], q: "Ukraine war latest", status: "ომი", support: [
-                { hub: "USA", q: "US military aid Ukraine", desc: "აშშ: HIMARS, საჰაერო თავდაცვა." },
-                { hub: "EU", q: "EU support Ukraine tanks", desc: "ევროკავშირი: ეკონომიკური და სამხედრო მხარდაჭერა." }
-            ]},
-            { from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], q: "Russia occupation Georgia", status: "ოკუპაცია", support: [
-                { hub: "USA", q: "US support Georgia", desc: "აშშ: სტრატეგიული პარტნიორობა." }
-            ]},
-            { from: "აზერბაიჯანი", to: "სომხეთი", path: [[40.4, 49.8], [40.1, 44.5]], q: "Armenia Azerbaijan news", status: "დავა", support: [
-                { hub: "TURKEY", q: "Turkey military aid Azerbaijan", desc: "თურქეთი: დრონები და წვრთნები." }
-            ]},
-            { from: "სერბეთი", to: "ბოსნია", path: [[44.8, 20.4], [43.8, 18.4]], q: "Bosnia tension news", status: "დაძაბულობა", support: [
-                { hub: "RUSSIA", q: "Russia support Republika Srpska", desc: "რუსეთი: პოლიტიკური ზურგი სეპარატისტებს." }
-            ]},
+            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], q: "Ukraine war latest", status: "ომი", support: [{ hub: "USA", q: "US military aid Ukraine", desc: "HIMARS, საჰაერო თავდაცვა." }, { hub: "EU", q: "EU support Ukraine tanks", desc: "ტანკები და ფინანსური პაკეტები." }] },
+            { from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], q: "Russia occupation Georgia news", status: "ოკუპაცია", support: [{ hub: "USA", q: "US support Georgia integrity", desc: "სტრატეგიული თავდაცვის მხარდაჭერა." }] },
+            { from: "აზერბაიჯანი", to: "სომხეთი", path: [[40.4, 49.8], [40.1, 44.5]], q: "Armenia Azerbaijan border", status: "დაძაბულობა", support: [{ hub: "TURKEY", q: "Turkey military support Azerbaijan", desc: "სამხედრო ტექნიკა და დრონები." }] },
+            { from: "სერბეთი", to: "ბოსნია", path: [[44.8, 20.4], [43.8, 18.4]], q: "Republika Srpska secession", status: "სეპარატიზმი", support: [{ hub: "RUSSIA", q: "Russia support Republika Srpska", desc: "პოლიტიკური დესტაბილიზაციის მხარდაჭერა." }] },
+            { from: "სერბეთი", to: "კოსოვო", path: [[44.8, 20.4], [42.6, 21.1]], q: "Kosovo Serbia tension", status: "კრიზისი", support: [{ hub: "USA", q: "KFOR US troops news", desc: "ნატოსა და აშშ-ს სამშვიდობო კონტინგენტი." }] },
+            { from: "მოლდოვა", to: "დნესტრისპირეთი", path: [[47.0, 28.8], [46.8, 29.6]], q: "Transnistria conflict", status: "ოკუპაცია", support: [{ hub: "RUSSIA", q: "Russia troops Transnistria", desc: "რუსული სამხედრო გარნიზონი." }] },
+            { from: "თურქეთი", to: "კვიპროსი", path: [[39.9, 32.8], [35.1, 33.3]], q: "Cyprus dispute latest", status: "გაყოფილი კუნძული", support: [{ hub: "TURKEY", q: "Northern Cyprus Turkey support", desc: "ჩრდილოეთ კვიპროსის სრული მხარდაჭერა." }] },
 
-            // ახლო აღმოსავლეთი
-            { from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [32.0, 34.8]], q: "Israel Iran war", status: "ესკალაცია", support: [
-                { hub: "USA", q: "US military support Israel", desc: "აშშ: Iron Dome და თავდაცვა." }
-            ]},
-            { from: "იემენი", to: "წითელი ზღვა", path: [[15.3, 44.2], [15.0, 42.0]], q: "Houthi attacks", status: "ბლოკადა", support: [
-                { hub: "IRAN", q: "Iran weapons Houthis news", desc: "ირანი: სარაკეტო ტექნოლოგიები." }
-            ]},
+            // ახლო აღმოსავლეთი & აფრიკა
+            { from: "ირანი", to: " ისრაელი", path: [[32.6, 51.6], [32.0, 34.8]], q: "Israel Iran war news", status: "ესკალაცია", support: [{ hub: "USA", q: "US defense aid Israel", desc: "ანტისარაკეტო ქოლგა და იარაღი." }] },
+            { from: "იემენი", to: "წითელი ზღვა", path: [[15.3, 44.2], [15.0, 42.0]], q: "Houthi ship attacks", status: "ბლოკადა", support: [{ hub: "IRAN", q: "Iran support Houthis weapons", desc: "სარაკეტო და დრონების ტექნოლოგია." }] },
+            { from: "ისრაელი", to: "ლიბანი", path: [[31.7, 35.2], [33.8, 35.5]], q: "Hezbollah Israel clash", status: "ომი", support: [{ hub: "IRAN", q: "Iran support Hezbollah news", desc: "ჰეზბოლას ფინანსური და სამხედრო ზურგი." }] },
+            { from: "სუდანი", to: "სამოქალაქო ომი", path: [[15.5, 32.5], [14.0, 25.0]], q: "Sudan civil war", status: "ომი", support: [{ hub: "RUSSIA", q: "Wagner group Sudan gold", desc: "რესურსების კონტროლი და დაქირავებული მებრძოლები." }] },
+            { from: "ეთიოპია", to: "სომალი", path: [[9.0, 38.7], [2.0, 45.3]], q: "Ethiopia Somalia tension", status: "დავა", support: [{ hub: "TURKEY", q: "Turkey Somalia defense pact", desc: "თურქეთ-სომალის საზღვაო შეთანხმება." }] },
+            { from: "M23", to: "კონგო", path: [[-1.9, 29.6], [-1.5, 29.2]], q: "DRC Congo war M23", status: "რესურსების ომი", support: [{ hub: "EU", q: "EU aid DR Congo", desc: "ჰუმანიტარული და სტაბილიზაციის დახმარება." }] },
 
-            // აზია
-            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], q: "Taiwan news live", status: "ბლოკადა", support: [
-                { hub: "USA", q: "US Taiwan arms sale", desc: "აშშ: შეიარაღება და უსაფრთხოება." }
-            ]},
-            { from: "ხუნტა", to: "მიანმარი", path: [[19.7, 96.1], [22.0, 95.0]], q: "Myanmar war news", status: "ომი", support: [
-                { hub: "CHINA", q: "China Myanmar junta support", desc: "ჩინეთი: ინვესტიციები და შეიარაღება." }
-            ]},
-            { from: "ჩრდ. კორეა", to: "სამხ. კორეა", path: [[39.0, 125.7], [37.5, 127.0]], q: "Korea tension news", status: "საფრთხე", support: [
-                { hub: "USA", q: "US South Korea alliance news", desc: "აშშ: ბირთვული ქოლგა." },
-                { hub: "RUSSIA", q: "Russia North Korea military deal", desc: "რუსეთი: სამხედრო ტექნოლოგიების გაცვლა." }
-            ]},
+            // აზია & ოკეანეთი
+            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], q: "Taiwan news live", status: "ბლოკადა", support: [{ hub: "USA", q: "US arms sales Taiwan", desc: "თავდაცვითი შეიარაღება და F-16-ები." }] },
+            { from: "ფილიპინები", to: "ჩინეთი", path: [[14.5, 121.0], [15.5, 118.0]], q: "South China Sea Philippines", status: "საზღვაო დავა", support: [{ hub: "USA", q: "US Philippines defense news", desc: "სამხედრო ბაზები და თავდაცვის პაქტი." }] },
+            { from: "ხუნტა", to: "მიანმარი", path: [[19.7, 96.1], [22.0, 95.0]], q: "Myanmar war latest", status: "სამოქალაქო ომი", support: [{ hub: "CHINA", q: "China support Myanmar junta", desc: "ეკონომიკური ინვესტიციები და იარაღი." }] },
+            { from: "ჩრდ. კორეა", to: "სამხ. კორეა", path: [[39.0, 125.7], [37.5, 127.0]], q: "Korea tension 2026", status: "საფრთხე", support: [{ hub: "USA", q: "US South Korea nuclear umbrella", desc: "ბირთვული შეკავების სტრატეგია." }, { hub: "RUSSIA", q: "Russia North Korea tech exchange", desc: "სარაკეტო და კოსმოსური თანამშრომლობა." }] },
+            { from: "ინდოეთი", to: "პაკისტანი", path: [[28.6, 77.2], [33.6, 73.0]], q: "Kashmir conflict news", status: "ბირთვული დავა", support: [{ hub: "CHINA", q: "China Pakistan military aid", desc: "ჩინურ-პაკისტანური სტრატეგიული ალიანსი." }] },
 
-            // აფრიკა & ამერიკა
-            { from: "სუდანი", to: "შიდა ომი", path: [[15.5, 32.5], [14.0, 25.0]], q: "Sudan conflict news", status: "ომი", support: [
-                { hub: "RUSSIA", q: "Wagner group Sudan news", desc: "რუსეთი (ვაგნერი): რესურსების კონტროლი." }
-            ]},
-            { from: "ვენესუელა", to: "გაიანა", path: [[7.5, -66.5], [6.8, -59.5]], q: "Essequibo news", status: "დავა", support: [
-                { hub: "USA", q: "US Guyana defense drills", desc: "აშშ: სამხედრო წვრთნები გაიანაში." }
-            ]},
-            { from: "ეკვადორი", to: "კარტელები", path: [[-0.2, -78.5], [-2.2, -79.8]], q: "Ecuador war", status: "შიდა ომი", support: [
-                { hub: "USA", q: "US aid Ecuador security", desc: "აშშ: უსაფრთხოების აღჭურვილობა." }
-            ]}
+            // ამერიკა
+            { from: "ვენესუელა", to: "გაიანა", path: [[7.5, -66.5], [6.8, -59.5]], q: "Essequibo Guyana Venezuela", status: "დავა", support: [{ hub: "USA", q: "US Guyana military training", desc: "წვრთნები და ტერიტორიული დაცვა." }] },
+            { from: "ეკვადორი", to: "კარტელები", path: [[-0.2, -78.5], [-2.2, -79.8]], q: "Ecuador war news", status: "შიდა ომი", support: [{ hub: "USA", q: "US security aid Ecuador", desc: "ანტინარკოტიკული დახმარება." }] },
+            { from: "ბანდები", to: "ჰაიტი", path: [[18.5, -72.3], [19.0, -72.5]], q: "Haiti gang violence news", status: "ქაოსი", support: [{ hub: "USA", q: "Haiti security mission news", desc: "საერთაშორისო მისიის ლოგისტიკა." }] },
+            { from: "არქტიკა", to: "რესურსები", path: [[75.0, 10.0], [82.0, 20.0]], q: "Arctic military buildup", status: "ცივი ომი", support: [{ hub: "RUSSIA", q: "Russia Arctic bases news", desc: "ჩრდილოეთის საზღვაო გზის კონტროლი." }, { hub: "USA", q: "US Arctic strategy news", desc: "ნატოს გაძლიერება ჩრდილოეთში." }] }
         ];
 
         function loadNews(query) {
@@ -115,7 +99,7 @@
                         L.DomEvent.stopPropagation(e);
                         document.getElementById('details').innerHTML = `
                             <div class="strike-card aid-card">
-                                <div class="status-tag aid-tag">მხარდაჭერა</div>
+                                <div class="status-tag aid-tag">სტრატეგიული მხარდაჭერა</div>
                                 <h3 style="color:#ffaa00;margin:0;">${sup.hub} ➔ ${s.to}</h3>
                                 <p style="font-size:0.85em; color:#fff; margin-top:8px;">${sup.desc}</p>
                             </div>`;
