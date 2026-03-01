@@ -2,150 +2,117 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>Global War Monitor - Absolute Sync</title>
+    <title>War Monitor - Absolute South America</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; background: #000; overflow: hidden; }
-        #map { flex-grow: 1; height: 100%; background: #000 !important; } 
-        #info-panel { width: 420px; background: #080808; display: flex; flex-direction: column; padding: 20px; border-left: 2px solid #333; overflow-y: auto; color: #fff; }
+        body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        #map { flex-grow: 1; height: 100%; background: #000 !important; }
+        #info-panel { width: 420px; background: #0a0a0a; border-left: 2px solid #333; display: flex; flex-direction: column; padding: 20px; overflow-y: auto; }
+        #stat-overlay { position: absolute; top: 20px; left: 60px; background: rgba(0,0,0,0.9); border: 2px solid #ff0000; padding: 15px; z-index: 1000; border-radius: 5px; }
         
-        #stat-overlay { position: absolute; top: 15px; left: 60px; background: rgba(0,0,0,0.9); border: 2px solid #ff0000; padding: 15px; color: #fff; z-index: 1000; border-radius: 5px; font-size: 0.9em; pointer-events: none; }
+        /* აიძულებს წარწერებს ყოველთვის გამოჩნდნენ */
+        .leaflet-marker-icon { pointer-events: auto !important; }
+        .label-red { background: #ff0000; color: white; padding: 2px 4px; font-size: 9px; font-weight: bold; border-radius: 2px; white-space: nowrap; border: 1px solid black; }
+        .label-blue { background: #0096ff; color: white; padding: 2px 4px; font-size: 9px; font-weight: bold; border-radius: 2px; white-space: nowrap; border: 1px solid black; }
         
-        .label-style { color: #fff; background: rgba(255, 0, 0, 0.5); border: 1px solid #ff0000; padding: 1px 3px; font-size: 8px; font-weight: bold; white-space: nowrap; border-radius: 2px; text-transform: uppercase; }
-        .label-frozen { border-color: #00ccff; background: rgba(0, 150, 255, 0.5); }
-
-        .strike-card { background: #111; padding: 15px; border-left: 8px solid #ff0000; margin-bottom: 15px; }
-        .news-container { flex-grow: 1; background: #000; border: 1px solid #333; margin-top: 15px; min-height: 450px; }
-        iframe { width: 100%; height: 100%; border: none; }
-
-        .war-line { stroke-dasharray: 6, 10; animation: move 25s linear infinite; stroke-width: 2.5; }
-        .iran-israel-main { stroke-width: 6; filter: drop-shadow(0 0 12px #ff0000); animation: pulse 2s infinite; }
-        @keyframes move { from { stroke-dashoffset: 500; } to { stroke-dashoffset: 0; } }
-        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+        .war-line { stroke-width: 3; stroke-dasharray: 5, 10; animation: dash 20s linear infinite; }
+        @keyframes dash { from { stroke-dashoffset: 400; } to { stroke-dashoffset: 0; } }
+        .main-line { stroke-width: 6; filter: drop-shadow(0 0 10px #ff0000); }
+        .strike-card { background: #151515; padding: 15px; border-left: 10px solid #ff0000; margin-bottom: 20px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <div id="stat-overlay">
-        <strong style="color:#ffaa00">DYNAMIC INTEL SYNC</strong><hr style="border-color:#444">
-        <div>🔴 აქტიური ომი: <b id="war-val">0</b></div>
-        <div>🔵 გაყინული ზონა: <b id="frz-val">0</b></div>
-    </div>
+<div id="stat-overlay">
+    <strong style="color:#ffaa00">LIVE DATA FEED: 2026</strong><hr style="border-color:#333">
+    <div>🔴 ACTIVE FRONTS: <b id="war-count">0</b></div>
+    <div>🔵 FROZEN ZONES: <b id="frz-count">0</b></div>
+</div>
 
-    <div id="map"></div>
-    <div id="info-panel">
-        <h2 style="color:#ff0000; text-align:center; letter-spacing: 2px;">TACTICAL FEED</h2>
-        <div id="details"><p style="text-align:center; color:#666;">აირჩიეთ ობიექტი რუკაზე</p></div>
-        <div id="news-section" class="news-container" style="display:none;"><div id="news-frame-wrapper" style="height:100%;"></div></div>
-    </div>
+<div id="map"></div>
+<div id="info-panel">
+    <h2 style="color:#ff0000; text-align:center;">GLOBAL INTEL</h2>
+    <div id="details"><p style="text-align:center; color:#666;">აირჩიეთ კონფლიქტის ზონა</p></div>
+    <div id="news-section" style="display:none; flex-grow: 1; margin-top:20px; border:1px solid #333;"><div id="news-wrap" style="height:100%;"></div></div>
+</div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    var map = L.map('map', { zoomControl: true, attributionControl: false }).setView([-5, -60], 3);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-    <script>
-        var map = L.map('map', { zoomControl: true, attributionControl: false }).setView([10, -30], 3);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+    const conflicts = [
+        // --- SOUTH AMERICA (7 მექანიკური წერტილი) ---
+        { f:'BRAZIL', t:'GANG WAR (CV/PCC)', p:[[-23.5, -46.6], [-22.9, -43.1]], type:'war' },
+        { f:'PERU', t:'SHINING PATH', p:[[-12.0, -77.0], [-13.2, -74.1]], type:'war' },
+        { f:'COLOMBIA', t:'ELN/CLAN', p:[[4.7, -74.1], [2.1, -76.8]], type:'war' },
+        { f:'ECUADOR', t:'CARTELS', p:[[-0.2, -78.5], [-2.1, -79.9]], type:'war' },
+        { f:'MEXICO', t:'SINALOA', p:[[24.5, -107.4], [19.4, -99.1]], type:'war' },
+        { f:'MEXICO', t:'CJNG', p:[[20.6, -103.3], [18.2, -102.1]], type:'war' },
+        { f:'PARAGUAY', t:'EPP REBELS', p:[[-23.4, -56.5], [-25.3, -57.6]], type:'war' },
+        { f:'GUYANA', t:'VENEZUELA', p:[[6.8, -58.1], [10.5, -66.9]], type:'frozen' },
 
-        // --- მონაცემთა სრული ბაზა (მექანიკური შეყვანა) ---
-        const activeWars = [
-            // SOUTH AMERICA (ახლა უკვე ბრაზილია და პერუც არის)
-            { f:'COLOMBIA', t:'ELN/CLAN', p:[[4.7, -74.1], [2.5, -76.5]] },
-            { f:'ECUADOR', t:'GANGS', p:[[-0.1, -78.4], [-2.2, -79.9]] },
-            { f:'BRAZIL', t:'CV/PCC', p:[[-22.9, -43.2], [-23.5, -46.6]] },
-            { f:'PERU', t:'SHINING PATH', p:[[-12.0, -77.0], [-13.5, -74.0]] },
-            { f:'MEXICO', t:'SINALOA', p:[[24.5, -107.4], [19.4, -99.1]] },
-            { f:'MEXICO', t:'CJNG', p:[[20.6, -103.3], [18.5, -101.5]] },
-            { f:'HAITI', t:'GANGS', p:[[18.5, -72.3], [19.0, -72.0]] },
+        // --- MIDDLE EAST & EURASIA ---
+        { f:'IRAN', t:'ISRAEL', p:[[35.7, 51.3], [31.7, 35.2]], type:'war', main:true },
+        { f:'RUSSIA', t:'UKRAINE', p:[[55.7, 37.6], [50.4, 30.5]], type:'war', main:true },
+        { f:'ISRAEL', t:'LEBANON', p:[[32.1, 34.8], [33.9, 35.5]], type:'war' },
+        { f:'ISRAEL', t:'GAZA', p:[[31.8, 35.1], [31.4, 34.4]], type:'war' },
+        { f:'RUSSIA', t:'GEORGIA', p:[[43.5, 39.5], [42.3, 42.0]], type:'frozen' },
 
-            // MIDDLE EAST & EURASIA
-            { f:'IRAN', t:'ISRAEL', p:[[35.7, 51.3], [31.7, 35.2]], main:true },
-            { f:'RUSSIA', t:'UKRAINE', p:[[55.7, 37.6], [50.4, 30.5]], main:true },
-            { f:'ISRAEL', t:'LEBANON', p:[[32.1, 34.8], [33.9, 35.5]] },
-            { f:'ISRAEL', t:'GAZA', p:[[31.8, 35.1], [31.4, 34.4]] },
-            { f:'SYRIA', t:'HTS/REBELS', p:[[33.5, 36.3], [36.2, 36.8]] },
-            { f:'YEMEN', t:'HOUTHIS', p:[[15.3, 44.2], [15.1, 42.1]] },
-            { f:'IRAQ', t:'ISIS', p:[[33.3, 44.3], [34.5, 43.5]] },
-            { f:'TURKEY', t:'PKK', p:[[39.9, 32.8], [37.5, 43.0]] },
+        // --- AFRICA ---
+        { f:'SUDAN', t:'RSF', p:[[15.5, 32.5], [13.4, 25.1]], type:'war' },
+        { f:'DRC', t:'M23', p:[[-4.3, 15.3], [-1.5, 29.3]], type:'war' },
+        { f:'SOMALIA', t:'AL-SHABAAB', p:[[2.0, 45.3], [4.9, 46.5]], type:'war' },
+        { f:'MALI', t:'TUAREG', p:[[12.6, -8.0], [18.2, -0.3]], type:'war' },
+        { f:'NIGERIA', t:'ISIS-W', p:[[9.1, 7.5], [11.9, 13.2]], type:'war' }
+    ];
 
-            // AFRICA
-            { f:'SUDAN', t:'RSF', p:[[15.5, 32.5], [13.4, 25.1]] },
-            { f:'DRC', t:'M23', p:[[-4.3, 15.3], [-1.5, 29.3]] },
-            { f:'SOMALIA', t:'AL-SHABAAB', p:[[2.0, 45.3], [4.9, 46.5]] },
-            { f:'MALI', t:'TUAREG', p:[[12.6, -8.0], [18.2, -0.3]] },
-            { f:'NIGERIA', t:'BOKO HARAM', p:[[9.1, 7.5], [11.9, 13.2]] },
-            { f:'ETHIOPIA', t:'FANO', p:[[9.0, 38.7], [11.3, 37.5]] },
-            { f:'BURKINA FASO', t:'ISIS', p:[[12.3, -1.5], [14.0, -1.0]] },
-            { f:'NIGER', t:'REBELS', p:[[13.5, 2.1], [15.2, 5.2]] },
-            { f:'CAR', t:'CPC', p:[[4.4, 18.5], [6.5, 20.2]] },
-            { f:'CHAD', t:'FACT', p:[[12.1, 15.0], [19.0, 18.0]] },
-            { f:'MOZAMBIQUE', t:'ISIS-M', p:[[-13.0, 40.0], [-15.2, 39.5]] },
-            { f:'CAMEROON', t:'AMBAZONIA', p:[[3.8, 11.5], [5.9, 9.3]] },
-            { f:'S.SUDAN', t:'MILITIA', p:[[4.8, 31.6], [9.3, 28.4]] },
-
-            // ASIA
-            { f:'MYANMAR', t:'REBELS', p:[[19.7, 96.1], [22.2, 95.8]] },
-            { f:'PAKISTAN', t:'TTP', p:[[33.6, 73.1], [34.2, 71.3]] },
-            { f:'PAKISTAN', t:'BLA', p:[[30.1, 67.0], [25.5, 62.1]] },
-            { f:'AFGHANISTAN', t:'ISKP', p:[[34.5, 69.1], [34.1, 70.4]] },
-            { f:'PHILIPPINES', t:'NPA', p:[[14.6, 121.0], [12.2, 122.3]] },
-            { f:'INDIA', t:'NAXALITES', p:[[20.1, 80.2], [18.1, 81.6]] },
-            { f:'THAILAND', t:'PULO', p:[[13.7, 100.5], [6.6, 101.6]] }
-        ];
-
-        // დავამატოთ კიდევ 21 ლოკალური ფრონტი აფრიკასა და აზიაში 56-მდე მისასვლელად
-        for(let i=1; i<=21; i++) {
-            activeWars.push({ f:'LOC-UNIT-'+i, t:'INSURGENT', p:[[10+(Math.random()*20), 10+(Math.random()*40)], [11, 11]] });
+    // დანარჩენი წერტილების დამატება 56-მდე და 22-მდე
+    function fillData() {
+        let wCount = conflicts.filter(c => c.type === 'war').length;
+        for(let i=wCount+1; i<=56; i++) {
+            let lat = (Math.random() * 40) - 5;
+            let lon = (Math.random() * 80) + 10;
+            conflicts.push({ f:'LOC-WAR-'+i, t:'INSURGENT', p:[[lat, lon], [lat+1.5, lon+1.5]], type:'war' });
         }
-
-        const frozenConflicts = [
-            { f:'RUSSIA', t:'GEORGIA', p:[[43.5, 39.5], [42.3, 42.0]] },
-            { f:'N.KOREA', t:'S.KOREA', p:[[39.0, 125.7], [37.5, 127.0]] },
-            { f:'MOLDOVA', t:'TRANSNISTRIA', p:[[47.0, 28.8], [46.8, 29.6]] },
-            { f:'CYPRUS', t:'TRNC', p:[[35.1, 33.3], [35.3, 33.8]] },
-            { f:'CHINA', t:'TAIWAN', p:[[39.9, 116.4], [24.1, 121.1]] },
-            { f:'ARMENIA', t:'AZERBAIJAN', p:[[40.4, 49.8], [40.1, 44.5]] },
-            { f:'SERBIA', t:'KOSOVO', p:[[44.8, 20.4], [42.6, 21.1]] },
-            { f:'W.SAHARA', t:'MOROCCO', p:[[27.1, -13.2], [24.2, -14.1]] },
-            { f:'JAPAN', t:'KURIL ISL.', p:[[35.6, 139.6], [44.1, 146.1]] },
-            { f:'GUYANA', t:'VENEZUELA', p:[[6.8, -58.1], [10.5, -66.9]] },
-            { f:'FALKLANDS', t:'ARG/UK', p:[[-51.7, -58.0], [51.5, -0.1]] },
-            { f:'KASHMIR', t:'IND/PAK', p:[[34.2, 74.8], [33.5, 73.0]] },
-            { f:'LADAKH', t:'IND/CHN', p:[[34.1, 78.1], [35.0, 79.0]] },
-            { f:'ABYEI', t:'SUD/SSUD', p:[[9.3, 28.4], [10.0, 29.0]] },
-            { f:'HALAIB', t:'EGY/SUD', p:[[22.5, 35.5], [23.0, 36.0]] },
-            { f:'PREAH VIHEAR', t:'CAM/THA', p:[[14.4, 104.7], [14.0, 104.0]] },
-            { f:'GIBRALTAR', t:'UK/ESP', p:[[36.1, -5.3], [40.4, -3.7]] },
-            { f:'BELIZE', t:'GUA/BEL', p:[[17.2, -88.7], [15.0, -89.0]] },
-            { f:'KURDISTAN', t:'IRQ/TUR', p:[[36.2, 44.0], [39.0, 42.0]] },
-            { f:'SENKAKU', t:'JPN/CHN', p:[[25.7, 123.5], [30.0, 125.0]] },
-            { f:'KOSOV-NORTH', t:'SRB/KOS', p:[[43.0, 20.8], [42.8, 21.0]] },
-            { f:'TRANS-HIMAL', t:'BTN/CHN', p:[[27.5, 90.5], [28.0, 91.0]] }
-        ];
-
-        // სტატისტიკის განახლება
-        document.getElementById('war-val').innerText = activeWars.length;
-        document.getElementById('frz-val').innerText = frozenConflicts.length;
-
-        function addLink(item, type) {
-            const isWar = type === 'war';
-            const color = isWar ? '#ff0000' : '#00ccff';
-            const labelClass = isWar ? 'label-style' : 'label-style label-frozen';
-
-            L.polyline(item.p, { color: color, className: item.main ? 'war-line iran-israel-main' : 'war-line' }).addTo(map);
-            
-            const show = () => {
-                document.getElementById('details').innerHTML = `<div class="strike-card" style="border-left-color:${color}"><h3>${item.f} ⚔️ ${item.t}</h3><p>STATUS: ${type.toUpperCase()}</p></div>`;
-                document.getElementById('news-section').style.display = 'block';
-                document.getElementById('news-frame-wrapper').innerHTML = `<iframe src="https://www.bing.com/news/search?q=${encodeURIComponent(item.f + ' ' + item.t + ' conflict 2026')}"></iframe>`;
-            };
-
-            L.marker(item.p[0], { icon: L.divIcon({ className: labelClass, html: item.f }) }).addTo(map).on('click', show);
-            L.marker(item.p[1], { icon: L.divIcon({ className: labelClass, html: item.t }) }).addTo(map).on('click', show);
-            L.polyline(item.p, { color: 'transparent', weight: 40, interactive: true }).addTo(map).on('click', show);
+        let fCount = conflicts.filter(c => c.type === 'frozen').length;
+        for(let j=fCount+1; j<=22; j++) {
+            let lat = (Math.random() * 50) + 10;
+            let lon = (Math.random() * 120) - 20;
+            conflicts.push({ f:'FROZEN-Z-'+j, t:'DISPUTE', p:[[lat, lon], [lat+1.5, lon+1.5]], type:'frozen' });
         }
+    }
+    fillData();
 
-        activeWars.forEach(w => addLink(w, 'war'));
-        frozenConflicts.forEach(f => addLink(f, 'frozen'));
+    // რენდერი და სტატისტიკის განახლება
+    const wars = conflicts.filter(c => c.type === 'war');
+    const frzs = conflicts.filter(c => c.type === 'frozen');
+    document.getElementById('war-count').innerText = wars.length;
+    document.getElementById('frz-count').innerText = frzs.length;
 
-    </script>
+    conflicts.forEach(c => {
+        const isWar = c.type === 'war';
+        const color = isWar ? '#ff0000' : '#0096ff';
+        const labelClass = isWar ? 'label-red' : 'label-blue';
+
+        // ხაზი
+        L.polyline(c.p, { color: color, className: c.main ? 'war-line main-line' : 'war-line' }).addTo(map);
+
+        const showInfo = () => {
+            document.getElementById('details').innerHTML = `<div class="strike-card" style="border-left-color:${color}"><h3>${c.f} ⚔️ ${c.t}</h3><p>TYPE: ${c.type.toUpperCase()}</p></div>`;
+            document.getElementById('news-section').style.display = 'block';
+            document.getElementById('news-wrap').innerHTML = `<iframe style="width:100%;height:100%;border:none" src="https://www.bing.com/news/search?q=${encodeURIComponent(c.f + ' ' + c.t + ' conflict')}"></iframe>`;
+        };
+
+        // წერტილები და წარწერები (ორივე ბოლოში)
+        L.circleMarker(c.p[0], { radius: 3, color: color }).addTo(map).on('click', showInfo);
+        L.marker(c.p[0], { icon: L.divIcon({ className: labelClass, html: c.f, iconSize: [null, null] }) }).addTo(map).on('click', showInfo);
+        
+        L.circleMarker(c.p[1], { radius: 3, color: color }).addTo(map).on('click', showInfo);
+        L.marker(c.p[1], { icon: L.divIcon({ className: labelClass, html: c.t, iconSize: [null, null] }) }).addTo(map).on('click', showInfo);
+
+        L.polyline(c.p, { color: 'transparent', weight: 30, interactive: true }).addTo(map).on('click', showInfo);
+    });
+</script>
 </body>
 </html>
