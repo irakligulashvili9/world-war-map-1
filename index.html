@@ -2,61 +2,59 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>Global Strategic Monitor - 2026</title>
+    <title>Global Strategic Monitor - Dynamic 2026</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; height: 100vh; background: #010101; color: #00ff00; overflow: hidden; }
-        #map { flex: 3.5; border-right: 1px solid #333; }
-        #info-panel { flex: 1.5; padding: 15px; background: #050505; overflow-y: auto; display: flex; flex-direction: column; border-left: 2px solid #ffaa00; }
-        h2 { color: #ffaa00; border-bottom: 2px solid #ffaa00; padding-bottom: 8px; font-size: 1.1em; text-transform: uppercase; margin-top: 0; text-align: center; }
+        #map { flex: 3.5; border-right: 1px solid #333; position: relative; }
         
-        /* 🕒 საათების სტილი */
-        .clock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #111; padding: 12px; border: 1px solid #333; margin-bottom: 15px; border-radius: 4px; }
-        .clock-item { text-align: center; border-bottom: 1px solid #222; padding-bottom: 4px; }
-        .clock-label { color: #ffaa00; font-size: 0.6em; display: block; letter-spacing: 1px; }
-        .clock-time { font-size: 0.9em; font-weight: bold; font-family: 'Courier New', Courier, monospace; color: #fff; }
+        /* 📺 CRT Scanline ეფექტი */
+        #map::after { content: " "; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); z-index: 1000; background-size: 100% 2px, 3px 100%; pointer-events: none; }
 
-        .share-btn { width: 100%; background: #ffaa00; color: #000; border: none; padding: 10px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-bottom: 15px; transition: 0.3s; }
-        .share-btn:hover { background: #fff; }
+        #info-panel { flex: 1.5; padding: 15px; background: #050505; overflow-y: auto; display: flex; flex-direction: column; border-left: 2px solid #ffaa00; z-index: 1001; }
+        h2 { color: #ffaa00; border-bottom: 2px solid #ffaa00; padding-bottom: 8px; font-size: 1.1em; text-transform: uppercase; text-align: center; text-shadow: 0 0 10px #ffaa00; }
+        
+        .clock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #111; padding: 12px; border: 1px solid #333; margin-bottom: 15px; }
+        .clock-time { font-family: 'Courier New', monospace; color: #fff; font-size: 0.9em; }
 
-        .strike-card { background: #0d0d0d; padding: 12px; border: 1px solid #ff4444; border-radius: 4px; margin-bottom: 12px; border-left: 5px solid #ff4444; }
-        .aid-card { border-left-color: #ffaa00 !important; border-color: #ffaa00 !important; }
-        .status-tag { display: inline-block; padding: 2px 6px; background: #ff4444; color: #000; font-weight: bold; font-size: 0.65em; border-radius: 2px; margin-bottom: 8px; }
-        .aid-tag { background: #ffaa00 !important; }
+        /* 💫 ანიმაციური ხაზების სტილი */
+        .leaflet-ant-path { stroke-dasharray: 10, 10; animation: ant-path-animation 20s linear infinite; }
+        @keyframes ant-path-animation { from { stroke-dashoffset: 100%; } to { stroke-dashoffset: 0%; } }
+
+        /* 🔴 მფეთქავი წერტილები */
+        .pulse { border-radius: 50%; height: 10px; width: 10px; background: #ff4444; position: absolute; box-shadow: 0 0 0 0 rgba(255, 68, 68, 1); animation: pulse-red 2s infinite; }
+        @keyframes pulse-red { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); } }
+
+        .strike-card { background: #0d0d0d; padding: 12px; border: 1px solid #ff4444; border-radius: 4px; margin-bottom: 12px; border-left: 5px solid #ff4444; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
-        .news-container { flex-grow: 1; border: 1px solid #222; background: #000; min-height: 350px; overflow: hidden; }
-        iframe { width: 100%; height: 100%; border: none; }
-        
-        .label-style { background: rgba(0,0,0,0.9); border: 1px solid #ff4444; color: #fff; padding: 1px 3px; font-size: 7px; border-radius: 2px; white-space: nowrap; }
-        .hub-label { border-color: #ffaa00; color: #ffaa00; font-weight: bold; font-size: 9px; }
+        .label-style { background: rgba(0,0,0,0.8); border: 1px solid #ff4444; color: #fff; padding: 1px 4px; font-size: 8px; border-radius: 3px; white-space: nowrap; }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
     <div id="info-panel">
-        <h2>🛰️ Strategic Monitor</h2>
+        <h2>🛰️ STRATEGIC MONITOR</h2>
         
         <div class="clock-grid">
-            <div class="clock-item"><span class="clock-label">WASHINGTON</span><div id="dc" class="clock-time">--:--:--</div></div>
-            <div class="clock-item"><span class="clock-label">KYIV</span><div id="ky" class="clock-time">--:--:--</div></div>
-            <div class="clock-item"><span class="clock-label">TBILISI</span><div id="tb" class="clock-time">--:--:--</div></div>
-            <div class="clock-item"><span class="clock-label">BEIJING</span><div id="bj" class="clock-time">--:--:--</div></div>
+            <div style="text-align:center"><span style="color:#ffaa00;font-size:0.6em">WASHINGTON</span><div id="dc" class="clock-time"></div></div>
+            <div style="text-align:center"><span style="color:#ffaa00;font-size:0.6em">KYIV</span><div id="ky" class="clock-time"></div></div>
+            <div style="text-align:center"><span style="color:#ffaa00;font-size:0.6em">TBILISI</span><div id="tb" class="clock-time"></div></div>
+            <div style="text-align:center"><span style="color:#ffaa00;font-size:0.6em">BEIJING</span><div id="bj" class="clock-time"></div></div>
         </div>
 
-        <button class="share-btn" onclick="shareLink()">🚀 გააზიარე მონიტორი</button>
+        <button style="width:100%; background:#ffaa00; color:#000; border:none; padding:10px; font-weight:bold; cursor:pointer; margin-bottom:15px;" onclick="shareLink()">🚀 გააზიარე მონიტორი</button>
 
-        <div id="details"><p style="color: #666; font-size: 0.85em; text-align: center;">მონაცემთა ბაზა აქტიურია</p></div>
-        <div id="news-section" class="news-container" style="display:none;">
-            <div id="news-frame-wrapper" style="height: 100%;"></div>
+        <div id="details"><p style="color:#555; font-size:0.8em; text-align:center;">დააწკაპუნეთ ვექტორს ინფორმაციისთვის</p></div>
+        <div id="news-section" style="display:none; flex-grow:1; border:1px solid #222; background:#000;">
+            <div id="news-frame-wrapper" style="height:100%;"></div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.min.js"></script>
 
     <script>
-        // --- საათების ლოგიკა ---
         function updateClocks() {
             const opt = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
             document.getElementById('dc').innerText = new Date().toLocaleTimeString('en-US', { ...opt, timeZone: 'America/New_York' });
@@ -66,77 +64,58 @@
         }
         setInterval(updateClocks, 1000); updateClocks();
 
-        // --- გაზიარება ---
-        function shareLink() {
-            const data = { title: 'Global Strategic Monitor', text: 'აკონტროლე კონფლიქტები რეალურ დროში!', url: window.location.href };
-            navigator.share ? navigator.share(data) : (navigator.clipboard.writeText(window.location.href), alert("ლინკი კოპირებულია!"));
-        }
-
         var map = L.map('map').setView([20, 10], 2.5);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        const hubs = {
-            USA: [38.9, -77.0], EU: [50.8, 4.3], CHINA: [39.9, 116.4], 
-            IRAN: [35.7, 51.3], RUSSIA: [55.7, 37.6], TURKEY: [39.9, 32.8]
-        };
+        const hubs = { USA: [38.9, -77.0], EU: [50.8, 4.3], CHINA: [39.9, 116.4], IRAN: [35.7, 51.3], RUSSIA: [55.7, 37.6], TURKEY: [39.9, 32.8] };
 
         const data = [
-            // ევროპა & კავკასია
-            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], q: "Ukraine war latest", status: "ომი", support: [{ hub: "USA", q: "US military aid Ukraine", desc: "HIMARS, ATACMS." }, { hub: "EU", q: "EU tanks Ukraine", desc: "ტანკები და ფინანსები." }] },
-            { from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], q: "Russia occupation Georgia", status: "ოკუპაცია", support: [{ hub: "USA", q: "US support Georgia", desc: "სტრატეგიული თავდაცვა." }] },
-            { from: "აზერბაიჯანი", to: "სომხეთი", path: [[40.4, 49.8], [40.1, 44.5]], q: "Armenia Azerbaijan border", status: "დაძაბულობა", support: [{ hub: "TURKEY", q: "Turkey Azerbaijan drones", desc: "ბაირაქტარები და წვრთნები." }] },
-            { from: "მოლდოვა", to: "დნესტრისპირეთი", path: [[47.0, 28.8], [46.8, 29.6]], q: "Transnistria conflict", status: "ოკუპაცია", support: [{ hub: "RUSSIA", q: "Russia Transnistria", desc: "სამხედრო ყოფნა." }] },
-            { from: "სერბეთი", to: "კოსოვო", path: [[44.8, 20.4], [42.6, 21.1]], q: "Kosovo Serbia tension", status: "კრიზისი", support: [{ hub: "USA", q: "KFOR US NATO", desc: "სამშვიდობო კონტინგენტი." }] },
-
-            // ახლო აღმოსავლეთი
-            { from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [32.0, 34.8]], q: "Israel Iran war", status: "ესკალაცია", support: [{ hub: "USA", q: "US aid Israel Iron Dome", desc: "ანტისარაკეტო ქოლგა." }] },
-            { from: "იემენი", to: "წითელი ზღვა", path: [[15.3, 44.2], [15.0, 42.0]], q: "Houthi attacks", status: "ბლოკადა", support: [{ hub: "IRAN", q: "Iran support Houthis", desc: "სარაკეტო ტექნიკა." }] },
-            { from: "ისრაელი", to: "ლიბანი", path: [[31.7, 35.2], [33.8, 35.5]], q: "Hezbollah Israel", status: "ომი", support: [{ hub: "IRAN", q: "Iran Hezbollah aid", desc: "სამხედრო ზურგი." }] },
-
-            // აზია
-            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], q: "Taiwan news", status: "ბლოკადა", support: [{ hub: "USA", q: "US Taiwan arms sale", desc: "F-16 და თავდაცვა." }] },
-            { from: "ჩრდ. კორეა", to: "სამხ. კორეა", path: [[39.0, 125.7], [37.5, 127.0]], q: "Korea tension", status: "საფრთხე", support: [{ hub: "USA", q: "US Korea alliance", desc: "ბირთვული შეკავება." }, { hub: "RUSSIA", q: "Russia NK tech", desc: "ტექნოლოგიური გაცვლა." }] },
-            { from: "ხუნტა", to: "მიანმარი", path: [[19.7, 96.1], [22.0, 95.0]], q: "Myanmar war", status: "ომი", support: [{ hub: "CHINA", q: "China Myanmar junta", desc: "პოლიტიკური მხარდაჭერა." }] },
-
-            // ამერიკა & აფრიკა
-            { from: "ვენესუელა", to: "გაიანა", path: [[7.5, -66.5], [6.8, -59.5]], q: "Essequibo news", status: "დავა", support: [{ hub: "USA", q: "US Guyana drill", desc: "სამხედრო წვრთნები." }] },
-            { from: "ეკვადორი", to: "კარტელები", path: [[-0.2, -78.5], [-2.2, -79.8]], q: "Ecuador war", status: "ომი", support: [{ hub: "USA", q: "US aid Ecuador", desc: "უსაფრთხოების ტექნიკა." }] },
-            { from: "სუდანი", to: "შიდა ომი", path: [[15.5, 32.5], [14.0, 25.0]], q: "Sudan civil war", status: "ომი", support: [{ hub: "RUSSIA", q: "Wagner Sudan", desc: "ვაგნერის რესურსები." }] }
+            { from: "რუსეთი", to: "უკრაინა", path: [[55.7, 37.6], [50.4, 30.5]], q: "Ukraine war", status: "ომი", support: [{hub:"USA", q:"US aid Ukraine"}, {hub:"EU", q:"EU tanks Ukraine"}] },
+            { from: "რუსეთი", to: "საქართველო", path: [[43.5, 39.5], [42.5, 41.5]], q: "Occupation Georgia", status: "ოკუპაცია", support: [{hub:"USA", q:"US Georgia support"}] },
+            { from: "აზერბაიჯანი", to: "სომხეთი", path: [[40.4, 49.8], [40.1, 44.5]], q: "Armenia Azerbaijan", status: "დავა", support: [{hub:"TURKEY", q:"Turkey Azerbaijan drones"}] },
+            { from: "ირანი", to: "ისრაელი", path: [[32.6, 51.6], [32.0, 34.8]], q: "Israel Iran conflict", status: "ესკალაცია", support: [{hub:"USA", q:"US Israel defense"}] },
+            { from: "ჩინეთი", to: "ტაივანი", path: [[26.0, 119.3], [25.0, 121.5]], q: "Taiwan news", status: "ბლოკადა", support: [{hub:"USA", q:"US Taiwan arms"}] },
+            { from: "იემენი", to: "წითელი ზღვა", path: [[15.3, 44.2], [15.0, 42.0]], q: "Houthi attacks", status: "ბლოკადა", support: [{hub:"IRAN", q:"Iran Houthis weapons"}] },
+            { from: "ხუნტა", to: "მიანმარი", path: [[19.7, 96.1], [22.0, 95.0]], q: "Myanmar war", status: "ომი", support: [{hub:"CHINA", q:"China Myanmar junta"}] },
+            { from: "ვენესუელა", to: "გაიანა", path: [[7.5, -66.5], [6.8, -59.5]], q: "Essequibo", status: "დავა", support: [{hub:"USA", q:"US Guyana news"}] }
         ];
 
-        function loadNews(query) {
-            const wrapper = document.getElementById('news-frame-wrapper');
+        function loadNews(q) {
             document.getElementById('news-section').style.display = 'block';
-            wrapper.innerHTML = `<iframe src="https://www.bing.com/news/search?q=${encodeURIComponent(query)}&qft=sortbydate%3d%221%22&form=NWRFSH"></iframe>`;
+            document.getElementById('news-frame-wrapper').innerHTML = `<iframe src="https://www.bing.com/news/search?q=${encodeURIComponent(q)}&qft=sortbydate%3d%221%22&form=NWRFSH"></iframe>`;
         }
 
         data.forEach(s => {
-            const warLine = L.polyline(s.path, {color: '#ff4444', weight: 3, opacity: 0.8, dashArray: '5, 5'}).addTo(map);
-            L.polylineDecorator(warLine, { patterns: [{offset: '100%', symbol: L.Symbol.arrowHead({pixelSize: 10, pathOptions: {color: '#ff4444', fillOpacity: 1}})}] }).addTo(map);
-
-            warLine.on('click', () => {
+            // 🔴 კონფლიქტის მოძრავი ხაზი
+            L.polyline(s.path, {color: '#ff4444', weight: 3, opacity: 0.8, className: 'leaflet-ant-path'}).addTo(map).on('click', () => {
                 document.getElementById('details').innerHTML = `<div class="strike-card"><div class="status-tag">${s.status}</div><h3 style="color:#ff4444;margin:0;">${s.from} ➔ ${s.to}</h3></div>`;
                 loadNews(s.q);
             });
 
-            if (s.support) {
+            // 🟡 მხარდაჭერის მოძრავი ხაზები
+            if(s.support) {
                 s.support.forEach(sup => {
-                    const start = hubs[sup.hub];
-                    const end = s.path[1];
-                    const supportLine = L.polyline([start, end], {color: '#ffaa00', weight: 4, opacity: 0.6}).addTo(map);
-                    supportLine.on('click', (e) => {
+                    L.polyline([hubs[sup.hub], s.path[1]], {color: '#ffaa00', weight: 2, opacity: 0.5, className: 'leaflet-ant-path'}).addTo(map).on('click', (e) => {
                         L.DomEvent.stopPropagation(e);
-                        document.getElementById('details').innerHTML = `<div class="strike-card aid-card"><div class="status-tag aid-tag">მხარდაჭერა</div><h3 style="color:#ffaa00;margin:0;">${sup.hub} ➔ ${s.to}</h3><p style="font-size:0.85em; color:#fff; margin-top:8px;">${sup.desc}</p></div>`;
+                        document.getElementById('details').innerHTML = `<div class="strike-card aid-card"><div class="status-tag aid-tag">მხარდაჭერა</div><h3 style="color:#ffaa00;margin:0;">${sup.hub} ➔ ${s.to}</h3></div>`;
                         loadNews(sup.q);
                     });
                 });
             }
+
+            // 🔴 მფეთქავი წერტილი კონფლიქტის ლოკაციაზე
+            L.marker(s.path[1], {icon: L.divIcon({className: 'pulse', iconSize: [10, 10]})}).addTo(map);
             L.marker(s.path[0], {icon: L.divIcon({className: 'label-style', html: s.from})}).addTo(map);
         });
 
         Object.keys(hubs).forEach(h => {
-            L.marker(hubs[h], {icon: L.divIcon({className: 'label-style hub-label', html: '★ ' + h})}).addTo(map);
+            L.marker(hubs[h], {icon: L.divIcon({className: 'label-style', html: '★ ' + h, iconAnchor: [0,0]})}).addTo(map);
         });
+
+        function shareLink() {
+            const d = { title: 'Global Strategic Monitor', url: window.location.href };
+            navigator.share ? navigator.share(d) : alert("ლინკი კოპირებულია!");
+        }
     </script>
 </body>
 </html>
